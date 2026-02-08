@@ -29,21 +29,60 @@ export class Round {
   /** The maximum the "they" team may raise to. */
   #theyLimit = 11;
 
-  constructor(weLimit, theyLimit) {
-    if (weLimit !== undefined && weLimit !== null) {
-      if (typeof weLimit !== "number")
-        throw new TypeError("if specified, `weLimit` must be a number");
-      if (weLimit < this.#points)
+  constructor(value, theyLimit) {
+    if (value === undefined && theyLimit === undefined) {
+    } else if (typeof value === "number" && typeof theyLimit === "number") {
+      if (value < this.#points)
         throw new RangeError("`weLimit` must be larger than default points");
-      this.#weLimit = weLimit;
-    }
-
-    if (theyLimit !== undefined && theyLimit !== null) {
-      if (typeof theyLimit !== "number")
-        throw new TypeError("if specified, `theyLimit` must be a number");
       if (theyLimit < this.#points)
         throw new RangeError("`theyLimit` must be larger than default points");
+      this.#weLimit = value;
       this.#theyLimit = theyLimit;
+    } else if (typeof value === "object" && theyLimit === undefined) {
+      if (!("points" in value))
+        throw new TypeError("missing points in deserialization object");
+      if (typeof value.points !== "number")
+        throw new TypeError("points in deserialization object must be number");
+      this.#points = value.points;
+
+      if (!("raisedLast" in value))
+        throw new TypeError("missing raisedLast in deserialization object");
+      if (value.raisedLast !== Team.We
+        && value.raisedLast !== Team.They
+        && value.raisedLast !== null)
+      {
+        throw new TypeError(
+          "team raising last must be an actual team in deserialization object"
+        );
+      }
+      this.#raisedLast = value.raisedLast;
+
+      if (!("winner" in value))
+        throw new TypeError("missing winner in deserialization object");
+      if (value.winner !== Team.We
+        && value.winner !== Team.They
+        && value.winner !== null)
+      {
+        throw new TypeError(
+          "winning team must be an actual team in deserialization object");
+      }
+      this.#winner = value.winner;
+
+      if (!("weLimit" in value))
+        throw new TypeError("missing weLimit in deserialization object");
+      if (typeof value.weLimit !== "number")
+        throw new TypeError(
+          "weLimit in deserialization object must be a number");
+      this.#weLimit = value.weLimit;
+
+      if (!("theyLimit" in value))
+        throw new TypeError("missing theyLimit in deserialization object");
+      if (typeof value.theyLimit !== "number")
+        throw new TypeError(
+          "theyLimit in deserialization object must be a number");
+      this.#theyLimit = value.theyLimit;
+    } else {
+      throw new TypeError("unknown form for Round constructor");
     }
   }
 
@@ -131,5 +170,16 @@ export class Round {
 
     this.#raisedLast = team;
     this.#points += 1;
+  }
+
+  /** Export needed data for JSON serialization. */
+  toJSON() {
+    return {
+      points: this.#points,
+      raisedLast: this.#raisedLast,
+      winner: this.#winner,
+      weLimit: this.#weLimit,
+      theyLimit: this.#theyLimit,
+    };
   }
 }

@@ -91,5 +91,72 @@ QUnit.module("models", function() {
       assert.false(round.canRaise(Team.We), "looser cannot raise");
       assert.false(round.canRaise(Team.They), "winner cannot raise");
     });
+
+    QUnit.test("JSON serialization", function(assert) {
+      let round = new Round();
+      assert.deepEqual(
+        round.toJSON(),
+        {
+          points: 2,
+          raisedLast: null,
+          winner: null,
+          weLimit: 11,
+          theyLimit: 11,
+        },
+        "correct field override"
+      );
+    });
+
+    QUnit.test("JSON deserialization", function(assert) {
+      let round = new Round({
+        points: 7,
+        raisedLast: Team.They,
+        winner: null,
+        weLimit: 6,
+        theyLimit: 11,
+      });
+      assert.strictEqual(round.points, 7, "points correct");
+      assert.false(round.canRaise(Team.They), "raiser cannot raise");
+      assert.true(round.canRaise(Team.We), "others can raise");
+      assert.false(round.decided, "noone won yet");
+
+      round.raise(Team.We);
+      assert.strictEqual(round.winner, Team.They, "limits enforcement");
+    });
+
+    QUnit.test("invalid JSON deserialization", function(assert) {
+      let deso = {};
+      assert.throws(function() { new Round(deso) }, "no points");
+
+      deso.points = "2";
+      assert.throws(function() { new Round(deso) }, "string points");
+
+      deso.points = 2;
+      assert.throws(function() { new Round(deso) }, "no raisedLast");
+
+      deso.raisedLast = "Team.We";
+      assert.throws(function() { new Round(deso) }, "string raisedLast");
+
+      deso.raisedLast = Team.We;
+      assert.throws(function() { new Round(deso) }, "no winner");
+
+      deso.winner = "Team.They";
+      assert.throws(function() { new Round(deso) }, "string winner");
+
+      deso.winner = Team.They;
+      assert.throws(function() { new Round(deso) }, "no weLimit");
+
+      deso.weLimit = "11";
+      assert.throws(function() { new Round(deso) }, "string weLimit");
+
+      deso.weLimit = 11;
+      assert.throws(function() { new Round(deso) }, "no theyLimit");
+
+      deso.theyLimit = "11";
+      assert.throws(function() { new Round(deso) }, "string theyLimit");
+
+      deso.theyLimit = 11;
+      new Round(deso);
+    });
   });
 });
