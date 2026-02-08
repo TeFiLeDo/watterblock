@@ -23,13 +23,15 @@ export const Team = Object.freeze({
  * the aim is to create a convenient score keeping system. Therefore this class
  * only implements the raising mechanics, and no actual game play.
  */
-export class Round {
+export class Round extends EventTarget {
   /** The maximum the "we" team may raise to. */
   #weLimit = 11;
   /** The maximum the "they" team may raise to. */
   #theyLimit = 11;
 
   constructor(value, theyLimit) {
+    super();
+
     if (value === undefined && theyLimit === undefined) {
     } else if (typeof value === "number" && typeof theyLimit === "number") {
       if (value < this.#points)
@@ -118,6 +120,8 @@ export class Round {
     return this.#winner !== null;
   }
 
+  static victoryEvent = "roundWon";
+
   /** A team has won the round.
    *
    * @param {Team} team The team that won the round.
@@ -129,6 +133,7 @@ export class Round {
       throw new Error("decided round cannot be won again");
 
     this.#winner = team;
+    this.dispatchEvent(new CustomEvent(Round.victoryEvent));
   }
 
   /** Check whether a team can raise.
@@ -159,12 +164,12 @@ export class Round {
     if (!this.canRaise(team)) return;
 
     if (team === Team.We && this.points >= this.#weLimit) {
-      this.#winner = Team.They;
+      this.won(Team.They);
       return;
     }
 
     if (team === Team.They && this.points >= this.#theyLimit) {
-      this.#winner = Team.We;
+      this.won(Team.We);
       return;
     }
 

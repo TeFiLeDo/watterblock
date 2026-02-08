@@ -158,5 +158,14 @@ QUnit.module("models", function() {
       deso.theyLimit = 11;
       new Round(deso);
     });
+
+    QUnit.test("victory causes event", function(assert) {
+      let round = new Round();
+      round.addEventListener(Round.victoryEvent, function() {
+        assert.step("event");
+      });
+      round.won(Team.We);
+      assert.verifySteps(["event"], "event was triggered");
+    });
   });
 });
