@@ -15,7 +15,7 @@ QUnit.module("models", function() {
 
     QUnit.test("immediate victory", function(assert) {
       let round = new Round();
-      round.won(Team.We);
+      round.winner = Team.We;
       assert.strictEqual(round.points, 2, "initial points");
       assert.true(round.decided, "there is a winner");
       assert.strictEqual(round.winner, Team.We, "correct winner");
@@ -25,9 +25,9 @@ QUnit.module("models", function() {
 
     QUnit.test("multiple victories", function(assert) {
       let round = new Round();
-      round.won(Team.They);
+      round.winner = Team.They;
       assert.throws(function() {
-        round.won(Team.We);
+        round.winner = Team.We;
       }, "victory cannot be stolen");
     });
 
@@ -161,10 +161,10 @@ QUnit.module("models", function() {
 
     QUnit.test("victory causes event", function(assert) {
       let round = new Round();
-      round.addEventListener(Round.victoryEvent, function() {
+      round.addEventListener(Round.winEvent, function() {
         assert.step("event");
       });
-      round.won(Team.We);
+      round.winner = Team.We;
       assert.verifySteps(["event"], "event was triggered");
     });
   });

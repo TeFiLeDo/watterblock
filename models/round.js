@@ -24,6 +24,9 @@ export const Team = Object.freeze({
  * only implements the raising mechanics, and no actual game play.
  */
 export class Round extends EventTarget {
+  /** The event triggered when the round is won. */
+  static winEvent= "roundWon";
+
   /** The maximum the "we" team may raise to. */
   #weLimit = 11;
   /** The maximum the "they" team may raise to. */
@@ -115,25 +118,23 @@ export class Round extends EventTarget {
     return this.#winner;
   }
 
-  /** Check whether the round has been decided. */
-  get decided() {
-    return this.#winner !== null;
-  }
-
-  static victoryEvent = "roundWon";
-
-  /** A team has won the round.
+  /** Set the winner of the round.
    *
    * @param {Team} team The team that won the round.
    */
-  won(team) {
+  set winner(team) {
     if (team !== Team.We && team !== Team.They)
       throw new TypeError("only actual teams can win");
     if (this.decided)
       throw new Error("decided round cannot be won again");
 
     this.#winner = team;
-    this.dispatchEvent(new CustomEvent(Round.victoryEvent));
+    this.dispatchEvent(new CustomEvent(Round.winEvent));
+  }
+
+  /** Check whether the round has been decided. */
+  get decided() {
+    return this.#winner !== null;
   }
 
   /** Check whether a team can raise.
@@ -164,12 +165,12 @@ export class Round extends EventTarget {
     if (!this.canRaise(team)) return;
 
     if (team === Team.We && this.points >= this.#weLimit) {
-      this.won(Team.They);
+      this.winner = Team.They;
       return;
     }
 
     if (team === Team.They && this.points >= this.#theyLimit) {
-      this.won(Team.We);
+      this.winner = Team.We;
       return;
     }
 
