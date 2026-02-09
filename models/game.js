@@ -3,7 +3,19 @@
 import { Round, Team } from "./round.js";
 import RoundResult from "./round_result.js";
 
-export default class Game {
+/** A single game of watten.
+ *
+ * A game consists of several rounds, and continues until either team reaches
+ * a points goal.
+ *
+ * This class keeps track of individual rounds and their results, and sets up
+ * new ones until the game is finished. It also has a `results` property, that
+ * calculates who won and how many points they earned.
+ */
+export default class Game extends EventTarget {
+  /** The event triggered when the game is finished. */
+  static finishedEvent = "gameFinished";
+
   /** The finished rounds.
    * @type {RoundResult[]}
    */
@@ -36,6 +48,7 @@ export default class Game {
   }
 
   constructor(value) {
+    super();
     if (value === undefined || typeof value === "number") {
       if (typeof value === "number")
         this.#goal = value;
@@ -131,6 +144,8 @@ export default class Game {
         Math.max(this.#goal - result.theirPoints, 2));
       this.#currentRound.addEventListener(
         Round.winEvent, this.#boundRoundFinishedHandler);
+    } else {
+      this.dispatchEvent(new CustomEvent(Game.finishedEvent));
     }
   }
 

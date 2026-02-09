@@ -333,5 +333,14 @@ QUnit.module("models", function() {
       deso.currentRound = null;
       new Game(deso);
     });
+
+    QUnit.test("finished event", function(assert) {
+      let game = new Game(2);
+      game.addEventListener(Game.finishedEvent, function() {
+        assert.step("event");
+      });
+      game.currentRound.winner = Team.They;
+      assert.verifySteps(["event"], "event was triggered");
+    });
   });
 });
