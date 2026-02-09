@@ -240,16 +240,13 @@ QUnit.module("models", function() {
     });
 
     QUnit.test("deserialize - unfinished", function(assert) {
+      let currentRound = new Round(2, 3);
+      currentRound.raise(Team.They);
+
       let game = new Game({
         goal: 3,
         rounds: [{ winner: Team.We, points: 2 }],
-        currentRound: {
-          points: 3,
-          raisedLast: Team.They,
-          winner: null,
-          weLimit: 2,
-          theyLimit: 3,
-        },
+        currentRound: currentRound.toJSON(),
       });
 
       assert.strictEqual(game.goal, 3, "goal");
@@ -260,13 +257,7 @@ QUnit.module("models", function() {
         "correct past round");
       assert.deepEqual(
         game.currentRound.toJSON(),
-        {
-          points: 3,
-          raisedLast: Team.They,
-          winner: null,
-          weLimit: 2,
-          theyLimit: 3,
-        },
+        currentRound.toJSON(),
         "correct current round");
       assert.deepEqual(
         game.result,
