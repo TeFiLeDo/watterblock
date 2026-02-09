@@ -80,7 +80,6 @@ export default class Session {
 
   constructor(value) {
     if (value === undefined) {
-      this.anotherGame();
     } else if (typeof value === "object") {
       if (!("goal" in value))
         throw new TypeError("missing goal in deserialization object");

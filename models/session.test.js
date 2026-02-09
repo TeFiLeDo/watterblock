@@ -10,7 +10,7 @@ QUnit.module("models", function() {
       let session = new Session();
       assert.strictEqual(session.goal, 11, "initial goal");
       assert.strictEqual(session.games.length, 0, "no finished games");
-      assert.notStrictEqual(session.currentGame, null, "game in progress");
+      assert.strictEqual(session.currentGame, null, "no game in progress");
       assert.deepEqual(
         session.result,
         { ourPoints: 0, theirPoints: 0 },
@@ -19,8 +19,15 @@ QUnit.module("models", function() {
       assert.strictEqual(session.theirTeam, "", "their team name");
     });
 
+    QUnit.test("start game", function(assert) {
+      let session = new Session();
+      session.anotherGame();
+      assert.notStrictEqual(session.currentGame, null, "game in progress");
+    });
+
     QUnit.test("single game finished", function(assert) {
       let session = new Session();
+      session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
       for (let i = 0; i < session.goal; i += 2)
         session.currentGame.currentRound.winner = Team.They;
@@ -43,6 +50,7 @@ QUnit.module("models", function() {
 
     QUnit.test("two games finished", function(assert) {
       let session = new Session();
+      session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
       for (let i = 0; i < session.goal; i += 2)
         session.currentGame.currentRound.winner = Team.They;
@@ -68,6 +76,7 @@ QUnit.module("models", function() {
 
     QUnit.test("new game doesn't overwrite existing", function(assert) {
       let session = new Session();
+      session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
       assert.notStrictEqual(session.currentGame, null, "ongoing game");
 
@@ -86,7 +95,6 @@ QUnit.module("models", function() {
     QUnit.test("serialization - new session", function(assert) {
       let session = new Session();
       let json = session.toJSON();
-      json.currentGame = session.currentGame.toJSON();
 
       assert.deepEqual(
         json,
@@ -95,13 +103,14 @@ QUnit.module("models", function() {
           ourTeam: "",
           theirTeam: "",
           games: [],
-          currentGame: session.currentGame.toJSON()
+          currentGame: null,
         },
         "correct serialization");
     });
 
     QUnit.test("serialization - finished & unfinished game", function(assert) {
       let session = new Session();
+      session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
       for (
         let i = 0;
