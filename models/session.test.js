@@ -4,7 +4,7 @@ import { Round, Team } from "./round.js";
 import Game from "./game.js";
 import Session from "./session.js";
 
-QUnit.module("models", function() {
+export default function() {
   QUnit.module("session", function() {
     QUnit.test("initial state", function(assert) {
       let session = new Session();
@@ -248,4 +248,4 @@ QUnit.module("models", function() {
       assert.throws(function() { new Session(deso); }, "unfinished past");
     });
   });
-});
+}

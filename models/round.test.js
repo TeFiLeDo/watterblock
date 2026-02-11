@@ -2,7 +2,7 @@
 
 import { Round, Team } from "./round.js";
 
-QUnit.module("models", function() {
+export default function() {
   QUnit.module("round", function() {
     QUnit.test("setup", function(assert) {
       let round = new Round();
@@ -168,4 +168,4 @@ QUnit.module("models", function() {
       assert.verifySteps(["event"], "event was triggered");
     });
   });
-});
+}

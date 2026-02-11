@@ -4,7 +4,7 @@ import { Round, Team } from "./round.js";
 import RoundResult from "./round_result.js";
 import Game from "./game.js";
 
-QUnit.module("models", function() {
+export default function() {
   QUnit.module("game", function() {
     QUnit.test("default construction", function(assert) {
       let game = new Game();
@@ -343,4 +343,4 @@ QUnit.module("models", function() {
       assert.verifySteps(["event"], "event was triggered");
     });
   });
-});
+}

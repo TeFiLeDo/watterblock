@@ -3,7 +3,7 @@
 import { Team } from "./round.js";
 import RoundResult from "./round_result.js";
 
-QUnit.module("models", function() {
+export default function() {
   QUnit.module("RoundResult", function() {
     QUnit.test("regular construction", function(assert) {
       let rr = new RoundResult(2, Team.We);
@@ -49,4 +49,4 @@ QUnit.module("models", function() {
       new RoundResult(deso);
     });
   });
-});
+}
