@@ -36,16 +36,10 @@ export class Round extends EventTarget {
   /** The event triggered when the round is won. */
   static winEvent= "roundWon";
 
-  /** The maximum the "we" team may raise to.
-   *
-   * @todo rename to ourLimit
-   */
-  #weLimit = 11;
-  /** The maximum the "they" team may raise to.
-   *
-   * @todo rename to theirLimit
-   */
-  #theyLimit = 11;
+  /** The maximum the "we" team may raise to. */
+  #ourLimit = 11;
+  /** The maximum the "they" team may raise to. */
+  #theirLimit = 11;
 
   constructor(value, theyLimit) {
     super();
@@ -53,11 +47,12 @@ export class Round extends EventTarget {
     if (value === undefined && theyLimit === undefined) {
     } else if (typeof value === "number" && typeof theyLimit === "number") {
       if (value < this.#points)
-        throw new RangeError("`weLimit` must be larger than default points");
+        throw new RangeError("`ourLimit` must be larger than default points");
       if (theyLimit < this.#points)
-        throw new RangeError("`theyLimit` must be larger than default points");
-      this.#weLimit = value;
-      this.#theyLimit = theyLimit;
+        throw new RangeError(
+          "`theirLimit` must be larger than default points");
+      this.#ourLimit = value;
+      this.#theirLimit = theyLimit;
     } else if (typeof value === "object" && theyLimit === undefined) {
       this.#fromStruct(value);
     } else {
@@ -138,12 +133,12 @@ export class Round extends EventTarget {
 
     if (!this.canRaise(team)) return;
 
-    if (team === Team.We && this.points >= this.#weLimit) {
+    if (team === Team.We && this.points >= this.#ourLimit) {
       this.winner = Team.They;
       return;
     }
 
-    if (team === Team.They && this.points >= this.#theyLimit) {
+    if (team === Team.They && this.points >= this.#theirLimit) {
       this.winner = Team.We;
       return;
     }
@@ -170,8 +165,8 @@ export class Round extends EventTarget {
       points: this.#points,
       raisedLast: this.#raisedLast,
       winner: this.#winner,
-      ourLimit: this.#weLimit,
-      theirLimit: this.#theyLimit,
+      ourLimit: this.#ourLimit,
+      theirLimit: this.#theirLimit,
     }
   }
 
@@ -202,12 +197,12 @@ export class Round extends EventTarget {
       throw new TypeError("struct must contain ourLimit as number");
     if (!Number.isInteger(value.ourLimit) || value.ourLimit < 2)
       throw new RangeError("struct must contain ourLimit >= 2 as integer");
-    this.#weLimit = value.ourLimit;
+    this.#ourLimit = value.ourLimit;
 
     if (typeof value.theirLimit !== "number")
       throw new TypeError("struct must contain theirLimit as number");
     if (!Number.isInteger(value.theirLimit) || value.theirLimit < 2)
       throw new RangeError("struct must contain theirLimit >= 2 as integer");
-    this.#theyLimit = value.theirLimit;
+    this.#theirLimit = value.theirLimit;
   }
 }
