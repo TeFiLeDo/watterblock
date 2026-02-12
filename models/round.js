@@ -8,6 +8,15 @@ export const Team = Object.freeze({
   We: 1,
   /** The "they" team, from the perspective of the score keeper. */
   They: 2,
+
+  /** Check if the passed value is a team.
+   *
+   * @param {Team} team The team to check.
+   * @returns Whether the value is a team.
+   */
+  isTeam(team) {
+    return (team === Team.We) || (team === Team.They);
+  }
 });
 
 /** A single round of watten.
@@ -27,9 +36,15 @@ export class Round extends EventTarget {
   /** The event triggered when the round is won. */
   static winEvent= "roundWon";
 
-  /** The maximum the "we" team may raise to. */
+  /** The maximum the "we" team may raise to.
+   *
+   * @todo rename to ourLimit
+   */
   #weLimit = 11;
-  /** The maximum the "they" team may raise to. */
+  /** The maximum the "they" team may raise to.
+   *
+   * @todo rename to theirLimit
+   */
   #theyLimit = 11;
 
   constructor(value, theyLimit) {
@@ -44,48 +59,7 @@ export class Round extends EventTarget {
       this.#weLimit = value;
       this.#theyLimit = theyLimit;
     } else if (typeof value === "object" && theyLimit === undefined) {
-      if (!("points" in value))
-        throw new TypeError("missing points in deserialization object");
-      if (typeof value.points !== "number")
-        throw new TypeError("points in deserialization object must be number");
-      this.#points = value.points;
-
-      if (!("raisedLast" in value))
-        throw new TypeError("missing raisedLast in deserialization object");
-      if (value.raisedLast !== Team.We
-        && value.raisedLast !== Team.They
-        && value.raisedLast !== null)
-      {
-        throw new TypeError(
-          "team raising last must be an actual team in deserialization object"
-        );
-      }
-      this.#raisedLast = value.raisedLast;
-
-      if (!("winner" in value))
-        throw new TypeError("missing winner in deserialization object");
-      if (value.winner !== Team.We
-        && value.winner !== Team.They
-        && value.winner !== null)
-      {
-        throw new TypeError(
-          "winning team must be an actual team in deserialization object");
-      }
-      this.#winner = value.winner;
-
-      if (!("weLimit" in value))
-        throw new TypeError("missing weLimit in deserialization object");
-      if (typeof value.weLimit !== "number")
-        throw new TypeError(
-          "weLimit in deserialization object must be a number");
-      this.#weLimit = value.weLimit;
-
-      if (!("theyLimit" in value))
-        throw new TypeError("missing theyLimit in deserialization object");
-      if (typeof value.theyLimit !== "number")
-        throw new TypeError(
-          "theyLimit in deserialization object must be a number");
-      this.#theyLimit = value.theyLimit;
+      this.#fromStruct(value);
     } else {
       throw new TypeError("unknown form for Round constructor");
     }
@@ -178,14 +152,62 @@ export class Round extends EventTarget {
     this.#points += 1;
   }
 
-  /** Export needed data for JSON serialization. */
-  toJSON() {
+  /** Export the data of this `Round` as a plain JS object with fields.
+   *
+   * The internals of the returned object are not stabilized, even if they are
+   * visible. It should be treated as opaque.
+   *
+   * There are only two stabile uses of the object:
+   * 1. It can be passed to the `Round` constructor as a single argument. The
+   *    constructor will then create a behaviourally identical instance to the
+   *    one from which the object was created. This is guaranteed to be
+   *    backwards compatible, i.e. a revised version of this class can still
+   *    use the objects created by an older version.
+   * 2. It can be stored using IndexedDB.
+   */
+  toStruct() {
     return {
       points: this.#points,
       raisedLast: this.#raisedLast,
       winner: this.#winner,
-      weLimit: this.#weLimit,
-      theyLimit: this.#theyLimit,
-    };
+      ourLimit: this.#weLimit,
+      theirLimit: this.#theyLimit,
+    }
+  }
+
+  /** Read in an object created by `Round.toStruct` */
+  #fromStruct(value) {
+    if (typeof value !== "object")
+      throw new TypeError("struct must be an object");
+
+    if (typeof value.points !== "number")
+      throw new TypeError("struct must contain points as number");
+    if (!Number.isInteger(value.points) || value.points < 2)
+      throw new RangeError("struct must contain points >= 2 as integer");
+    this.#points = value.points;
+
+    if (!("raisedLast" in value))
+      throw new TypeError("struct must contain raisedLast");
+    if (value.raisedLast !== null && !Team.isTeam(value.raisedLast))
+      throw new TypeError("struct must contain raisedLast as Team or null");
+    this.#raisedLast = value.raisedLast;
+
+    if (!("winner" in value))
+      throw new TypeError("struct must contain winner");
+    if (value.winner !== null && !Team.isTeam(value.winner))
+      throw new TypeError("struct must contain winner as Team or null");
+    this.#winner = value.winner;
+
+    if (typeof value.ourLimit !== "number")
+      throw new TypeError("struct must contain ourLimit as number");
+    if (!Number.isInteger(value.ourLimit) || value.ourLimit < 2)
+      throw new RangeError("struct must contain ourLimit >= 2 as integer");
+    this.#weLimit = value.ourLimit;
+
+    if (typeof value.theirLimit !== "number")
+      throw new TypeError("struct must contain theirLimit as number");
+    if (!Number.isInteger(value.theirLimit) || value.theirLimit < 2)
+      throw new RangeError("struct must contain theirLimit >= 2 as integer");
+    this.#theyLimit = value.theirLimit;
   }
 }

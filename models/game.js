@@ -53,29 +53,14 @@ export default class Game extends EventTarget {
       if (typeof value === "number")
         this.#goal = value;
 
+      if (this.#goal < 1)
+        throw new RangeError("goal must be at least 1");
+
       this.#currentRound = new Round(this.#goal, this.#goal);
       this.#currentRound.addEventListener(
         Round.winEvent, this.#boundRoundFinishedHandler);
     } else if (typeof value === "object") {
-      if (!("goal" in value))
-        throw new TypeError("missing goal in deserialization object");
-      if (typeof value.goal !== "number")
-        throw new TypeError("goal in deserialization object must be number");
-      this.#goal = value.goal;
-
-      if (!("rounds" in value))
-        throw new TypeError("missing rounds in deserialization object");
-      if (!Array.isArray(value.rounds))
-        throw new TypeError("rounds in deserialization object must be array");
-      for (let r of value.rounds)
-        this.#rounds.push(new RoundResult(r));
-
-      if (!("currentRound" in value))
-        throw new TypeError("missing currentRound in deserialization object");
-      if (this.result.winner === null)
-        this.#currentRound = new Round(value.currentRound);
-      else if (value.currentRound !== null)
-        throw new TypeError("currentRound in finished game must be null");
+      this.#fromStruct(value);
     } else {
       throw new TypeError("unknown form of Game constructor");
     }
@@ -151,12 +136,55 @@ export default class Game extends EventTarget {
 
   #boundRoundFinishedHandler = this.#handleRoundFinished.bind(this);
 
-  /** Export needed data for JSON serialization. */
-  toJSON() {
+  /** Export the data of this `Game` as a plain JS object with fields.
+   *
+   * The internals of the returned object are not stabilized, even if they are
+   * visible. It should be treated as opaque.
+   *
+   * There are only two stabile uses of the object:
+   * 1. It can be passed to the `Game` constructor as a single argument. The
+   *    constructor will then create a behaviourally identical instance to the
+   *    one from which the object was created. This is guaranteed to be
+   *    backwards compatible, i.e. a revised version of this class can still
+   *    use the objects created by an older version.
+   * 2. It can be stored using IndexedDB.
+   */
+  toStruct() {
     return {
       goal: this.#goal,
-      rounds: this.#rounds,
-      currentRound: this.#currentRound,
+      rounds: this.#rounds.map((r) => r.toStruct()),
+      currentRound:
+        this.#currentRound !== null ? this.#currentRound.toStruct() : null,
     };
+  }
+
+  /** Read in an object created by `Game.toStruct` */
+  #fromStruct(value) {
+    if (typeof value !== "object")
+      throw new TypeError("struct must be an object");
+
+    if (typeof value.goal !== "number")
+      throw new TypeError("struct must contain goal as number");
+    if (!Number.isInteger(value.goal) || value.goal < 1)
+      throw new RangeError("struct must contain goal >= 1 as integer");
+    this.#goal = value.goal;
+
+    if (!("rounds" in value))
+      throw new TypeError("struct must contain rounds");
+    if (!Array.isArray(value.rounds))
+      throw new TypeError("struct must contain rounds as array");
+    this.#rounds = value.rounds.map((r) => new RoundResult(r));
+
+    if (typeof value.currentRound !== "object")
+      throw new TypeError("struct must contain currentRound as object");
+    if (this.result.winner === null) {
+      if (value.currentRound === null)
+        throw new TypeError(
+          "struct of ongoing game must contain current round");
+      else
+        this.#currentRound = new Round(value.currentRound);
+    } else if (value.currentRound !== null)
+      throw new TypeError(
+        "struct of finished game must not contain current round");
   }
 }

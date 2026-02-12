@@ -92,73 +92,6 @@ export default function() {
       assert.false(round.canRaise(Team.They), "winner cannot raise");
     });
 
-    QUnit.test("JSON serialization", function(assert) {
-      let round = new Round();
-      assert.deepEqual(
-        round.toJSON(),
-        {
-          points: 2,
-          raisedLast: null,
-          winner: null,
-          weLimit: 11,
-          theyLimit: 11,
-        },
-        "correct field override"
-      );
-    });
-
-    QUnit.test("JSON deserialization", function(assert) {
-      let round = new Round({
-        points: 7,
-        raisedLast: Team.They,
-        winner: null,
-        weLimit: 6,
-        theyLimit: 11,
-      });
-      assert.strictEqual(round.points, 7, "points correct");
-      assert.false(round.canRaise(Team.They), "raiser cannot raise");
-      assert.true(round.canRaise(Team.We), "others can raise");
-      assert.false(round.decided, "noone won yet");
-
-      round.raise(Team.We);
-      assert.strictEqual(round.winner, Team.They, "limits enforcement");
-    });
-
-    QUnit.test("invalid JSON deserialization", function(assert) {
-      let deso = {};
-      assert.throws(function() { new Round(deso) }, "no points");
-
-      deso.points = "2";
-      assert.throws(function() { new Round(deso) }, "string points");
-
-      deso.points = 2;
-      assert.throws(function() { new Round(deso) }, "no raisedLast");
-
-      deso.raisedLast = "Team.We";
-      assert.throws(function() { new Round(deso) }, "string raisedLast");
-
-      deso.raisedLast = Team.We;
-      assert.throws(function() { new Round(deso) }, "no winner");
-
-      deso.winner = "Team.They";
-      assert.throws(function() { new Round(deso) }, "string winner");
-
-      deso.winner = Team.They;
-      assert.throws(function() { new Round(deso) }, "no weLimit");
-
-      deso.weLimit = "11";
-      assert.throws(function() { new Round(deso) }, "string weLimit");
-
-      deso.weLimit = 11;
-      assert.throws(function() { new Round(deso) }, "no theyLimit");
-
-      deso.theyLimit = "11";
-      assert.throws(function() { new Round(deso) }, "string theyLimit");
-
-      deso.theyLimit = 11;
-      new Round(deso);
-    });
-
     QUnit.test("victory causes event", function(assert) {
       let round = new Round();
       round.addEventListener(Round.winEvent, function() {
@@ -166,6 +99,160 @@ export default function() {
       });
       round.winner = Team.We;
       assert.verifySteps(["event"], "event was triggered");
+    });
+
+    QUnit.test("toStruct - unfinished", function(assert) {
+      let round = new Round();
+      let struct = round.toStruct();
+
+      let expected = {
+        points: 2,
+        raisedLast: null,
+        winner: null,
+        ourLimit: 11,
+        theirLimit: 11,
+      };
+
+      assert.deepEqual(struct, expected, "successfull structurizing");
+    });
+
+    QUnit.test("toStruct - finished", function(assert) {
+      let round = new Round(4, 3);
+      round.raise(Team.We);
+      round.raise(Team.They);
+      let struct = round.toStruct();
+
+      let expected = {
+        points: 3,
+        raisedLast: Team.We,
+        winner: Team.We,
+        ourLimit: 4,
+        theirLimit: 3,
+      };
+
+      assert.deepEqual(struct, expected, "successfull structurizing");
+    });
+
+    QUnit.test("fromStruct - current", function(assert) {
+      let orig = new Round(3, 3);
+      orig.raise(Team.We);
+
+      let copy = new Round(orig.toStruct());
+      assert.strictEqual(copy.points, orig.points, "points match");
+      assert.strictEqual(
+        copy.canRaise(Team.We),
+        orig.canRaise(Team.We),
+        "can we raise matches");
+      assert.strictEqual(
+        copy.canRaise(Team.They),
+        orig.canRaise(Team.They),
+        "can they raise matches");
+
+      orig.winner = Team.They;
+      copy = new Round(orig.toStruct());
+      assert.strictEqual(copy.winner, orig.winner, "winners match");
+    });
+
+    QUnit.test("fromStruct - invalid", function(assert) {
+      let struct = {};
+      function doIt(message) {
+        assert.throws(function() { new Round(struct); }, message);
+      }
+
+      doIt("no points");
+      struct.points = "2";
+      doIt("string points");
+      struct.points = 1.5;
+      doIt("non-int points");
+      struct.points = 1;
+      doIt("small points");
+      struct.points = 2;
+
+      doIt("no raisedLast");
+      struct.raisedLast = "we";
+      doIt("string raisedLast");
+      struct.raisedLast = -1;
+      doIt("raisedLast not actual team");
+      struct.raisedLast = null;
+
+      doIt("no winner");
+      struct.winner = "they";
+      doIt("string winner");
+      struct.winner = -1;
+      doIt("winner not actual team");
+      struct.winner = null;
+
+      doIt("no ourLimit");
+      struct.ourLimit = "11";
+      doIt("string ourLimit");
+      struct.ourLimit = 1;
+      doIt("small ourLimit");
+      struct.ourLimit = 11;
+
+      doIt("no theirLimit");
+      struct.theirLimit = "11";
+      doIt("string theirLimit");
+      struct.theirLimit = 1;
+      doIt("small theirLimit");
+      struct.theirLimit = 11;
+
+      new Round(struct);
+    });
+
+    // Data Import Tests
+    // =================
+    //
+    // The tests named "fromStruct - vXX - XXXXX" are there to ensure that
+    // future versions of the `Round` class still can correctly read in the
+    // structural data exported by earlier versions. This is needed to ensure
+    // that the data remains usable.
+    //
+    // These tests work by importing an old structural object, and then
+    // exporting a new one. The new one should match with how the current
+    // implementation would represent the same state.
+    //
+    // Therefore you should not modify the `struct` variables. Instead adjust
+    // the `expected` variable, to make sure the reexported data matches what
+    // is now correct.
+
+    QUnit.test("fromStruct - v1 - unfinished", function(assert) {
+      let struct = {
+        points: 2,
+        raisedLast: null,
+        winner: null,
+        ourLimit: 11,
+        theirLimit: 11,
+      };
+      let round = new Round(struct);
+
+      let expected = {
+        points: 2,
+        raisedLast: null,
+        winner: null,
+        ourLimit: 11,
+        theirLimit: 11,
+      };
+      assert.deepEqual(round.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v1 - finished", function(assert) {
+      let struct = {
+        points: 3,
+        raisedLast: Team.We,
+        winner: Team.We,
+        ourLimit: 4,
+        theirLimit: 3
+      };
+      let round = new Round(struct);
+
+      let expected = {
+        points: 3,
+        raisedLast: Team.We,
+        winner: Team.We,
+        ourLimit: 4,
+        theirLimit: 3
+      };
+      assert.deepEqual(round.toStruct(), expected, "reexport matches");
     });
   });
 }

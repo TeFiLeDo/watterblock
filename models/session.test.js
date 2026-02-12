@@ -19,6 +19,14 @@ export default function() {
       assert.strictEqual(session.theirTeam, "", "their team name");
     });
 
+    QUnit.test("set goal", function(assert) {
+      let session = new Session();
+      assert.strictEqual(session.goal, 11, "initial goal");
+      session.goal = 3;
+      assert.strictEqual(session.goal, 3, "changed goal");
+      assert.throws(function() { session.goal = 0; }, "invalid goal");
+    });
+
     QUnit.test("start game", function(assert) {
       let session = new Session();
       session.anotherGame();
@@ -92,160 +100,198 @@ export default function() {
         "initial game still current");
     });
 
-    QUnit.test("serialization - new session", function(assert) {
+    QUnit.test("toStruct - new session", function(assert) {
       let session = new Session();
-      let json = session.toJSON();
+      let struct = session.toStruct();
 
-      assert.deepEqual(
-        json,
-        {
-          goal: 11,
-          ourTeam: "",
-          theirTeam: "",
-          games: [],
-          currentGame: null,
-        },
-        "correct serialization");
-    });
-
-    QUnit.test("serialization - finished & unfinished game", function(assert) {
-      let session = new Session();
-      session.anotherGame();
-      session.currentGame.currentRound.winner = Team.We;
-      for (
-        let i = 0;
-        session.currentGame !== null && i < session.currentGame.goal;
-        i += 2
-      )
-        session.currentGame.currentRound.winner = Team.They;
-
-      session.goal = 15;
-      session.anotherGame();
-      session.currentGame.currentRound.winner = Team.They;
-      for (
-        let i = 0;
-        session.currentGame !== null && i < session.currentGame.goal - 2;
-        i += 2
-      )
-        session.currentGame.currentRound.winner = Team.We;
-
-      session.goal = 5;
-      session.ourTeam = "This is us!";
-      session.theirTeam = "This is them!";
-
-      let json = session.toJSON();
-      json.games = [];
-      for (let i = 0; i < session.games.length; i++)
-        json.games.push(session.games[i].toJSON());
-      json.currentGame = session.currentGame.toJSON();
-
-      assert.deepEqual(
-        json,
-        {
-          goal: 5,
-          ourTeam: "This is us!",
-          theirTeam: "This is them!",
-          games: [
-            session.games[0].toJSON(),
-          ],
-          currentGame: session.currentGame.toJSON(),
-        },
-        "correct serialization");
-      assert.strictEqual(json.games[0].goal, 11, "first goal");
-      assert.strictEqual(json.currentGame.goal, 15, "second goal");
-    });
-
-    QUnit.test("deserialization - new session", function(assert) {
-      let game = new Game();
-      let json = {
+      let expected = {
         goal: 11,
         ourTeam: "",
         theirTeam: "",
         games: [],
-        currentGame: game.toJSON(),
+        currentGame: null,
       };
-      json.currentGame.currentRound = game.currentRound.toJSON();
 
-      let session = new Session(json);
-      assert.strictEqual(session.goal, 11, "goal");
-      assert.strictEqual(session.ourTeam, "", "our team name");
-      assert.strictEqual(session.theirTeam, "", "their team name");
-      assert.strictEqual(session.games.length, 0, "no past games");
-      assert.deepEqual(session.currentGame.toJSON(), game.toJSON());
+      assert.deepEqual(struct, expected, "successfull structurizing");
     });
 
-    QUnit.test("deserialization - un- and finished games", function(assert) {
-      let finished = new Game(2);
-      finished.currentRound.winner = Team.We;
+    QUnit.test("toStruct - finished & unfinished game", function(assert) {
+      let session = new Session();
+      session.goal = 3;
+      session.anotherGame();
+      session.currentGame.currentRound.raise(Team.We);
+      session.currentGame.currentRound.winner = Team.They;
+      session.anotherGame();
+      session.currentGame.currentRound.winner = Team.We;
+      session.ourTeam = "This is us!";
+      session.theirTeam = "This is them!";
+      let struct = session.toStruct();
 
+      let finished = new Game(3);
+      finished.currentRound.raise(Team.We);
+      finished.currentRound.winner = Team.They;
       let unfinished = new Game(3);
-      unfinished.currentRound.winner = Team.They;
-
-      let json = {
-        goal: 4,
+      unfinished.currentRound.winner = Team.We;
+      let expected = {
+        goal: 3,
         ourTeam: "This is us!",
         theirTeam: "This is them!",
-        games: [finished],
-        currentGame: unfinished,
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct()
       };
-      let deso = JSON.parse(JSON.stringify(json));
-      let session = new Session(deso);
 
-      assert.strictEqual(session.goal, 4, "goal");
-      assert.strictEqual(session.ourTeam, "This is us!", "our team name");
-      assert.strictEqual(session.theirTeam, "This is them!", "their team");
-      assert.strictEqual(session.games.length, 1, "one past game");
-      assert.deepEqual(
-        session.games[0].toJSON(), finished.toJSON(), "finished game");
-      assert.notStrictEqual(session.currentGame, null, "unfinished game here");
-      assert.deepEqual(
-        session.currentGame.toJSON(), unfinished.toJSON(), "unfinished game");
+      assert.deepEqual(struct, expected, "successfull structurizing");
     });
 
-    QUnit.test("deserialization - invalid", function(assert) {
-      let deso = {};
-      assert.throws(function() { new Session(deso); }, "no goal");
+    QUnit.test("fromStruct - current", function(assert) {
+      let orig = new Session();
+      orig.goal = 3;
+      orig.ourTeam = "This is us!";
+      orig.theirTeam = "This is them!";
 
-      deso.goal = "11";
-      assert.throws(function() { new Session(deso); }, "string goal");
+      let copy = new Session(orig.toStruct());
+      assert.strictEqual(copy.goal, orig.goal, "goals match");
+      assert.strictEqual(copy.ourTeam, orig.ourTeam, "our teams match");
+      assert.strictEqual(copy.theirTeam, orig.theirTeam, "their teams match");
+      assert.strictEqual(
+        copy.games.length, orig.games.length, "amount of past games");
+      assert.strictEqual(
+        copy.currentGame, orig.currentGame, "no current games");
+      assert.deepEqual(copy.result, orig.result, "results match");
 
-      deso.goal = 11;
-      assert.throws(function() { new Session(deso); }, "no ourTeam");
+      orig.anotherGame();
+      orig.currentGame.currentRound.raise(Team.They);
+      orig.currentGame.currentRound.winner = Team.We;
+      orig.anotherGame();
+      orig.currentGame.currentRound.winner = Team.They;
 
-      deso.ourTeam = 11;
-      assert.throws(function() { new Session(deso); }, "number ourTeam");
+      copy = new Session(orig.toStruct());
+      assert.strictEqual(copy.games.length, 1, "single past game");
+      assert.strictEqual(
+        copy.games.length, orig.games.length, "amount of past games");
+      assert.deepEqual(
+        copy.games[0].toStruct(), orig.games[0].toStruct(), "past game");
+      assert.deepEqual(
+        copy.currentGame.toStruct(),
+        orig.currentGame.toStruct(),
+        "current game");
+      assert.deepEqual(copy.result, orig.result, "results match");
+    });
 
-      deso.ourTeam = "";
-      assert.throws(function() { new Session(deso); }, "no theirTeam");
+    QUnit.test("fromStruct - invalid", function(assert) {
+      let struct = {};
+      function doIt(message) {
+        assert.throws(function() { new Session(struct); }, message);
+      }
 
-      deso.theirTeam = 11;
-      assert.throws(function() { new Session(deso); }, "number theirTeam");
+      let unfinished = new Game(3);
+      unfinished.currentRound.winner = Team.We;
+      let finished = new Game(3);
+      finished.currentRound.raise(Team.We);
+      finished.currentRound.winner = Team.They;
 
-      deso.theirTeam = "";
-      assert.throws(function() { new Session(deso); }, "no games");
+      doIt("no goal");
+      struct.goal = "3";
+      doIt("string goal");
+      struct.goal = Math.PI;
+      doIt("non-int goal");
+      struct.goal = 0;
+      doIt("small goal");
+      struct.goal = 3;
 
-      deso.games = null;
-      assert.throws(function() { new Session(deso); }, "null games");
+      doIt("no ourTeam");
+      struct.ourTeam = 5;
+      doIt("number ourTeam");
+      struct.ourTeam = "";
 
-      deso.games = [];
-      assert.throws(function() { new Session(deso); }, "no currentGame");
+      doIt("no theirTeam");
+      struct.theirTeam = 6;
+      doIt("number theirTeam");
+      struct.theirTeam = "";
 
-      deso.currentGame = {
+      doIt("no games");
+      struct.games = "nope";
+      doIt("string games");
+      struct.games = ["nope", "again"];
+      doIt("string array games");
+      struct.games = [unfinished.toStruct()];
+      doIt("unfinished game in games");
+      struct.games = [finished.toStruct()];
+
+      doIt("no currentGame");
+      struct.currentGame = "nope";
+      doIt("string currentGame");
+      struct.currentGame = finished.toStruct();
+      doIt("finished currentGame");
+      struct.currentGame = unfinished.toStruct();
+
+      new Session(struct);
+
+      struct.games = [];
+      struct.currentGame = null;
+      new Session(struct);
+    });
+
+    // Data Import Tests
+    // =================
+    //
+    // The tests named "fromStruct - vXX - XXXXX" are there to ensure that
+    // future versions of the `Session` class still can correctly read in the
+    // structural data exported by earlier versions. This is needed to ensure
+    // that the data remains usable.
+    //
+    // These tests work by importing an old structural object, and then
+    // exporting a new one. The new one should match with how the current
+    // implementation would represent the same state.
+    //
+    // Therefore you should not modify the `struct` variables. Instead adjust
+    // the `expected` variable, to make sure the reexported data matches what
+    // is now correct.
+
+    QUnit.test("fromStruct - v1 - new session", function(assert) {
+      let struct = {
         goal: 3,
-        rounds: [{ winner: Team.They, points: 3 }],
-        currentRound: null,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
       };
-      assert.throws(function() { new Session(deso); }, "finished currentGame");
+      let session = new Session(struct);
 
-      deso.currentGame = null;
-      new Session(deso);
-
-      deso.games = [{
+      let expected = {
         goal: 3,
-        rounds: [{ winner: Team.They, points: 2}],
-        currentRound: (new Round(3, 2)).toJSON(),
-      }];
-      assert.throws(function() { new Session(deso); }, "unfinished past");
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v1 - finished & unfinished", function(assert) {
+      let finished = new Game(3);
+      finished.currentRound.raise(Team.We);
+      finished.currentRound.winner = Team.They;
+      let unfinished = new Game(3);
+      unfinished.currentRound.winner = Team.We;
+
+      let struct = {
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+      };
+      let session = new Session(struct);
+
+      let expected = {
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
     });
   });
 }

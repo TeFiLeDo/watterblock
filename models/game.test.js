@@ -23,6 +23,10 @@ export default function() {
       );
     });
 
+    QUnit.test("low goal", function(assert) {
+      assert.throws(function() { new Game(0); }, "goal must be 1 or higher");
+    });
+
     QUnit.test("higher goal", function(assert) {
       let game = new Game(15);
       assert.strictEqual(game.rounds.length, 0, "no past rounds");
@@ -45,10 +49,8 @@ export default function() {
       game.currentRound.winner = Team.We;
 
       assert.equal(game.rounds.length, 1, "one round played");
-      assert.deepEqual(
-        game.rounds[0].toJSON(),
-        { points: 2, winner: Team.We},
-        "first round correct");
+      assert.strictEqual(game.rounds[0].points, 2, "first round points");
+      assert.strictEqual(game.rounds[0].winner, Team.We, "first round winner");
       assert.notStrictEqual(game.currentRound, null, "current round there");
       assert.false(game.currentRound.decided, "current round is not decided");
       assert.deepEqual(
@@ -70,10 +72,9 @@ export default function() {
       game.currentRound.winner = Team.They;
 
       assert.equal(game.rounds.length, 2, "two round played");
-      assert.deepEqual(
-        game.rounds[1].toJSON(),
-        { points: 3, winner: Team.They},
-        "second round correct");
+      assert.strictEqual(game.rounds[1].points, 3, "second round points");
+      assert.strictEqual(
+        game.rounds[1].winner, Team.They, "second round winner");
       assert.notStrictEqual(game.currentRound, null, "current round there");
       assert.false(game.currentRound.decided, "current round is not decided");
       assert.deepEqual(
@@ -183,157 +184,6 @@ export default function() {
       );
     });
 
-    QUnit.test("serialization - unfinished", function(assert) {
-      let game = new Game();
-      game.currentRound.winner = Team.We;
-      game.currentRound.raise(Team.They);
-      game.currentRound.winner = Team.They;
-      game.currentRound.raise(Team.We);
-
-      let json = game.toJSON();
-      json.currentRound = json.currentRound.toJSON();
-      for (let i = 0; i < json.rounds.length; i++)
-        json.rounds[i] = json.rounds[i].toJSON();
-
-      assert.deepEqual(
-        json,
-        {
-          goal: 11,
-          rounds: [
-            { points: 2, winner: Team.We },
-            { points: 3, winner: Team.They },
-          ],
-          currentRound: {
-            points: 3,
-            raisedLast: Team.We,
-            winner: null,
-            weLimit: 9,
-            theyLimit: 8,
-          },
-        },
-        "serialized data"
-      );
-    });
-
-    QUnit.test("serialization - finished", function(assert) {
-      let game = new Game(3);
-      game.currentRound.winner = Team.We;
-      game.currentRound.raise(Team.They);
-      game.currentRound.winner = Team.They;
-
-      let json = game.toJSON();
-      for (let i = 0; i < json.rounds.length; i++)
-        json.rounds[i] = json.rounds[i].toJSON();
-
-      assert.deepEqual(
-        json,
-        {
-          goal: 3,
-          rounds: [
-            { points: 2, winner: Team.We },
-            { points: 3, winner: Team.They },
-          ],
-          currentRound: null,
-        },
-        "serialized data"
-      );
-    });
-
-    QUnit.test("deserialize - unfinished", function(assert) {
-      let currentRound = new Round(2, 3);
-      currentRound.raise(Team.They);
-
-      let game = new Game({
-        goal: 3,
-        rounds: [{ winner: Team.We, points: 2 }],
-        currentRound: currentRound.toJSON(),
-      });
-
-      assert.strictEqual(game.goal, 3, "goal");
-      assert.strictEqual(game.rounds.length, 1, "one round played");
-      assert.deepEqual(
-        game.rounds[0].toJSON(),
-        { winner: Team.We, points: 2 },
-        "correct past round");
-      assert.deepEqual(
-        game.currentRound.toJSON(),
-        currentRound.toJSON(),
-        "correct current round");
-      assert.deepEqual(
-        game.result,
-        {
-          winner: null,
-          points: 0,
-          ourPoints: 2,
-          theirPoints: 0,
-        },
-        "intermediate results");
-    });
-
-    QUnit.test("deserialize - finished", function(assert) {
-      let game = new Game({
-        goal: 3,
-        rounds: [{ winner: Team.They, points: 3 }],
-        currentRound: null,
-      });
-
-      assert.strictEqual(game.goal, 3, "goal");
-      assert.strictEqual(game.rounds.length, 1, "one round played");
-      assert.deepEqual(
-        game.rounds[0].toJSON(),
-        { winner: Team.They, points: 3 },
-        "correct past round");
-      assert.strictEqual(game.currentRound, null, "no current round");
-      assert.deepEqual(
-        game.result,
-        {
-          winner: Team.They,
-          points: 2,
-          ourPoints: 0,
-          theirPoints: 3,
-        },
-        "final results");
-    });
-
-    QUnit.test("deserialize - invalid", function(assert) {
-      let deso = {};
-      assert.throws(function() { new Game(deso); }, "no goal");
-
-      deso.goal = "5";
-      assert.throws(function() { new Game(deso); }, "string goal");
-
-      deso.goal = 5;
-      assert.throws(function() { new Game(deso); }, "no rounds");
-
-      deso.rounds = ["nonono"];
-      assert.throws(function() { new Game(deso); }, "string rounds");
-
-      deso.rounds = [];
-      assert.throws(function() { new Game(deso); }, "no currentRound");
-
-      deso.currentRound = null;
-      assert.throws(function() { new Game(deso); }, "missing currentRound");
-
-      deso.currentRound = "nonono";
-      assert.throws(function() { new Game(deso); }, "broken currentRound");
-
-      deso.rounds = [{ winner: Team.We, points: 5 }];
-      deso.currentRound = {
-        points: 2,
-        raisedLast: Team.They,
-        winner: null,
-        weLimit: 2,
-        theyLimit: 5};
-      assert.throws(function() { new Game(deso); }, "unneeded currentRound");
-
-      deso.goal = 11;
-      new Game(deso);
-
-      deso.goal = 5;
-      deso.currentRound = null;
-      new Game(deso);
-    });
-
     QUnit.test("finished event", function(assert) {
       let game = new Game(2);
       game.addEventListener(Game.finishedEvent, function() {
@@ -341,6 +191,167 @@ export default function() {
       });
       game.currentRound.winner = Team.They;
       assert.verifySteps(["event"], "event was triggered");
+    });
+
+    QUnit.test("toStruct - unfinished", function(assert) {
+      let game = new Game();
+      game.currentRound.winner = Team.We;
+      game.currentRound.raise(Team.They);
+      game.currentRound.winner = Team.They;
+      game.currentRound.raise(Team.We);
+      let struct = game.toStruct();
+
+      let expected = {
+        goal: 11,
+        rounds: [
+          { points: 2, winner: Team.We },
+          { points: 3, winner: Team.They },
+        ],
+        currentRound: {
+          points: 3,
+          raisedLast: Team.We,
+          winner: null,
+          ourLimit: 9,
+          theirLimit: 8
+        },
+      };
+
+      assert.deepEqual(struct, expected, "successfull structurizing");
+    });
+
+    QUnit.test("toStruct - finished", function(assert) {
+      let game = new Game(3);
+      game.currentRound.winner = Team.We;
+      game.currentRound.raise(Team.They);
+      game.currentRound.winner = Team.They;
+      let struct = game.toStruct();
+
+      let expected = {
+        goal: 3,
+        rounds: [
+          { points: 2, winner: Team.We },
+          { points: 3, winner: Team.They },
+        ],
+        currentRound: null,
+      };
+
+      assert.deepEqual(struct, expected, "successfull structurizing");
+    });
+
+    QUnit.test("fromStruct - current", function(assert) {
+      let orig = new Game(4);
+      orig.currentRound.raise(Team.We);
+
+      let copy = new Game(orig.toStruct());
+      assert.strictEqual(copy.goal, orig.goal, "goals match");
+      assert.strictEqual(
+        copy.currentRound.points,
+        orig.currentRound.points,
+        "current points match");
+      assert.strictEqual(
+        copy.rounds.length, orig.rounds.length, "rounds match");
+
+      orig.currentRound.winner = Team.We;
+      copy = new Game(orig.toStruct());
+      assert.strictEqual(
+        copy.rounds.length, orig.rounds.length, "rounds match");
+      assert.deepEqual(
+        copy.rounds[0].toStruct(), orig.rounds[0].toStruct(), "round matches");
+
+      orig.currentRound.winner = Team.We;
+      copy = new Game(orig.toStruct());
+      assert.deepEqual(copy.result, orig.result, "results match");
+    });
+
+    QUnit.test("fromStruct - invalid", function(assert) {
+      let struct = {};
+      function doIt(message) {
+        assert.throws(function() { new Game(struct); }, message);
+      }
+
+      doIt("no goal");
+      struct.goal = "3";
+      doIt("string goal");
+      struct.goal = Math.PI;
+      doIt("non-int goal");
+      struct.goal = 0;
+      doIt("small goal");
+      struct.goal = 3;
+
+      doIt("no rounds");
+      struct.rounds = "nope";
+      doIt("rounds not array");
+      struct.rounds = ["nope", "again"];
+      doIt("string array rounds");
+      struct.rounds = [];
+
+      doIt("no currentRound");
+      struct.currentRound = "nope";
+      doIt("string currentround");
+      struct.currentRound = null;
+      doIt("missing currentRound");
+      struct.currentRound = new Round().toStruct();
+      new Game(struct);
+
+      struct.rounds = [ new RoundResult(3, Team.They).toStruct() ];
+      doIt("unneeded currentRound");
+      struct.currentRound = null;
+      new Game(struct);
+    });
+
+    // Data Import Tests
+    // =================
+    //
+    // The tests named "fromStruct - vXX - XXXXX" are there to ensure that
+    // future versions of the `Game` class still can correctly read in the
+    // structural data exported by earlier versions. This is needed to ensure
+    // that the data remains usable.
+    //
+    // These tests work by importing an old structural object, and then
+    // exporting a new one. The new one should match with how the current
+    // implementation would represent the same state.
+    //
+    // Therefore you should not modify the `struct` variables. Instead adjust
+    // the `expected` variable, to make sure the reexported data matches what
+    // is now correct.
+
+    QUnit.test("fromStruct - v1 - unfinished", function(assert) {
+      let past = new RoundResult(2, Team.We);
+      let current = new Round(2, 3);
+      current.raise(Team.They);
+
+      let struct = {
+        goal: 3,
+        rounds: [ past.toStruct() ],
+        currentRound: current.toStruct(),
+      };
+      let game = new Game(struct);
+
+      let expected = {
+        goal: 3,
+        rounds: [ past.toStruct() ],
+        currentRound: current.toStruct(),
+      };
+      assert.deepEqual(game.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v1 - finished", function(assert) {
+      let round1 = new RoundResult(2, Team.We);
+      let round2 = new RoundResult(3, Team.They);
+
+      let struct = {
+        goal: 3,
+        rounds: [ round1.toStruct(), round2.toStruct() ],
+        currentRound: null,
+      };
+      let game = new Game(struct);
+
+      let expected = {
+        goal: 3,
+        rounds: [ round1.toStruct(), round2.toStruct() ],
+        currentRound: null,
+      };
+      assert.deepEqual(game.toStruct(), expected, "reexport matches");
     });
   });
 }

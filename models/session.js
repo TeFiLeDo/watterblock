@@ -8,7 +8,21 @@ export default class Session {
    *
    * Only applies to new games.
    */
-  goal = 11;
+  #goal = 11;
+
+  /** Get the goal for new games. */
+  get goal() {
+    return this.#goal;
+  }
+
+  /** Set the goal for new games. */
+  set goal(value) {
+    if (typeof value !== "number")
+      throw new TypeError("goal must be a number");
+    if (!Number.isInteger(value) || value < 1)
+      throw new RangeError("goal must be integer >= 1");
+    this.#goal = value;
+  }
 
   /** The name or members of the "we" team. */
   ourTeam = "";
@@ -81,57 +95,70 @@ export default class Session {
   constructor(value) {
     if (value === undefined) {
     } else if (typeof value === "object") {
-      if (!("goal" in value))
-        throw new TypeError("missing goal in deserialization object");
-      if (typeof value.goal !== "number")
-        throw new TypeError("goal in deserialization object must be number");
-      this.goal = value.goal;
-
-      if (!("ourTeam" in value))
-        throw new TypeError("missing ourTeam in deserialization object");
-      if (typeof value.ourTeam !== "string")
-        throw new TypeError(
-          "ourTeam in deserialization object must be string");
-      this.ourTeam = value.ourTeam;
-
-      if (!("theirTeam" in value))
-        throw new TypeError("missing theirTeam in deserialization object");
-      if (typeof value.theirTeam !== "string")
-        throw new TypeError(
-          "theirTeam in deserialization object must be string");
-      this.theirTeam = value.theirTeam;
-
-      if (!("games" in value))
-        throw new TypeError("missing games in deserialization object");
-      if (!Array.isArray(value.games))
-        throw new TypeError("games in deserialization object must be array");
-      for (let g of value.games) {
-        let game = new Game (g);
-        if (game.result.winner === null)
-          throw new TypeError("past game cannot be unfinished");
-        this.#games.push(game);
-      }
-
-      if (!("currentGame" in value))
-        throw new TypeError("missing currentGame in deserialization object");
-      if (value.currentGame !== null) {
-        this.#currentGame = new Game(value.currentGame);
-        if (this.#currentGame.result.winner !== null)
-          throw new Error("currentGame cannot be finished");
-      }
+      this.#fromStruct(value);
     } else {
       throw new TypeError("unknown form of Session constructor");
     }
   }
 
-  /** Export needed data for JSON serialization. */
-  toJSON() {
+  /** Export the data of this `Session` as a plain JS object with fields.
+   *
+   * The internals of the returned object are not stabilized, even if they are
+   * visible. It should be treated as opaque.
+   *
+   * There are only two stabile uses of the object:
+   * 1. It can be passed to the `Session` constructor as a single argument. The
+   *    constructor will then create a behaviourally identical instance to the
+   *    one from which the object was created. This is guaranteed to be
+   *    backwards compatible, i.e. a revised version of this class can still
+   *    use the objects created by an older version.
+   * 2. It can be stored using IndexedDB.
+   */
+  toStruct() {
     return {
-      goal: this.goal,
+      goal: this.#goal,
       ourTeam: this.ourTeam,
       theirTeam: this.theirTeam,
-      games: this.#games,
-      currentGame: this.#currentGame,
+      games: this.#games.map((g) => g.toStruct()),
+      currentGame:
+        this.#currentGame !== null ? this.#currentGame.toStruct() : null,
+    }
+  }
+
+  /** Read in an object created by `Session.toStruct` */
+  #fromStruct(value) {
+    if (typeof value !== "object")
+      throw new TypeError("struct must be an object");
+
+    if (typeof value.goal !== "number")
+      throw new TypError("struct must contain goal as number");
+    if (!Number.isInteger(value.goal) || value.goal < 1)
+      throw new RangeError("struct must contain goal >= 1 as integer");
+    this.#goal = value.goal;
+
+    if (typeof value.ourTeam !== "string")
+      throw new TypeError("struct must contain ourTeam as string");
+    this.ourTeam = value.ourTeam;
+
+    if (typeof value.theirTeam !== "string")
+      throw new TypeError("struct must contain theirTeam as string");
+    this.theirTeam = value.theirTeam;
+
+    if (!("games" in value))
+      throw new TypeError("struct must contain games");
+    if (!Array.isArray(value.games))
+      throw new TypeError("struct must contain games as array");
+    this.#games = value.games.map((g) => new Game(g));
+    for (let g of this.#games)
+      if (g.result.winner === null)
+        throw new Error("past games must be finished");
+
+    if (typeof value.currentGame !== "object")
+      throw new TypeError("struct must contain currentGame as object");
+    if (value.currentGame !== null) {
+      this.#currentGame = new Game(value.currentGame);
+      if (this.#currentGame.result.winner !== null)
+        throw new Error("currentGame in struct mustnot be finished");
     }
   }
 }
