@@ -4,6 +4,9 @@ import Game from "./game.js";
 import { Team } from "./round.js";
 
 export default class Session {
+  /** The ID of this session. */
+  id = null;
+
   /** The amout of points at which individual games are won.
    *
    * Only applies to new games.
@@ -115,20 +118,31 @@ export default class Session {
    * 2. It can be stored using IndexedDB.
    */
   toStruct() {
-    return {
+    let res = {
       goal: this.#goal,
       ourTeam: this.ourTeam,
       theirTeam: this.theirTeam,
       games: this.#games.map((g) => g.toStruct()),
       currentGame:
         this.#currentGame !== null ? this.#currentGame.toStruct() : null,
-    }
+    };
+
+    if (this.id !== null)
+      res.id = this.id;
+
+    return res;
   }
 
   /** Read in an object created by `Session.toStruct` */
   #fromStruct(value) {
     if (typeof value !== "object")
       throw new TypeError("struct must be an object");
+
+    if ("id" in value) {
+      if (typeof value.id !== "number")
+        throw new TypeError("if struct contains id, then it must be a number");
+      this.id = value.id;
+    }
 
     if (typeof value.goal !== "number")
       throw new TypError("struct must contain goal as number");

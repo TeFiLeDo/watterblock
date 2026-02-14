@@ -123,6 +123,7 @@ export default function() {
       session.currentGame.currentRound.winner = Team.They;
       session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
+      session.id = 15;
       session.ourTeam = "This is us!";
       session.theirTeam = "This is them!";
       let struct = session.toStruct();
@@ -133,6 +134,7 @@ export default function() {
       let unfinished = new Game(3);
       unfinished.currentRound.winner = Team.We;
       let expected = {
+        id: 15,
         goal: 3,
         ourTeam: "This is us!",
         theirTeam: "This is them!",
@@ -150,6 +152,8 @@ export default function() {
       orig.theirTeam = "This is them!";
 
       let copy = new Session(orig.toStruct());
+      assert.strictEqual(copy.id, orig.id, "IDs match");
+      assert.strictEqual(copy.id, null, "copy ID is null");
       assert.strictEqual(copy.goal, orig.goal, "goals match");
       assert.strictEqual(copy.ourTeam, orig.ourTeam, "our teams match");
       assert.strictEqual(copy.theirTeam, orig.theirTeam, "their teams match");
@@ -160,12 +164,15 @@ export default function() {
       assert.deepEqual(copy.result, orig.result, "results match");
 
       orig.anotherGame();
+      orig.id = 15;
       orig.currentGame.currentRound.raise(Team.They);
       orig.currentGame.currentRound.winner = Team.We;
       orig.anotherGame();
       orig.currentGame.currentRound.winner = Team.They;
 
       copy = new Session(orig.toStruct());
+      assert.strictEqual(copy.id, orig.id, "IDs match");
+      assert.strictEqual(copy.id, 15, "copy ID is correct");
       assert.strictEqual(copy.games.length, 1, "single past game");
       assert.strictEqual(
         copy.games.length, orig.games.length, "amount of past games");
@@ -285,6 +292,56 @@ export default function() {
       let session = new Session(struct);
 
       let expected = {
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v2 - new session", function(assert) {
+      let struct = {
+        id: 23,
+        goal: 3,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+      };
+      let session = new Session(struct);
+
+      let expected = {
+        id: 23,
+        goal: 3,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v2 - finished & unfinished", function(assert) {
+      let finished = new Game(3);
+      finished.currentRound.raise(Team.We);
+      finished.currentRound.winner = Team.They;
+      let unfinished = new Game(3);
+      unfinished.currentRound.winner = Team.We;
+
+      let struct = {
+        id: 17,
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+      };
+      let session = new Session(struct);
+
+      let expected = {
+        id: 17,
         goal: 3,
         ourTeam: "This is us!",
         theirTeam: "This is them!",
