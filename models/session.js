@@ -141,6 +141,9 @@ export default class Session {
     if ("id" in value) {
       if (typeof value.id !== "number")
         throw new TypeError("if struct contains id, then it must be a number");
+      if (!Number.isInteger(value.id))
+        throw new RangeError(
+          "if struct contains id, then it must be an integer");
       this.id = value.id;
     }
 

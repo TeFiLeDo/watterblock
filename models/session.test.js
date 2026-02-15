@@ -208,6 +208,20 @@ export default function() {
       finished.currentRound.raise(Team.We);
       finished.currentRound.winner = Team.They;
 
+      struct.id = "nope";
+      doIt(
+        "string id",
+        new TypeError("if struct contains id, then it must be a number"));
+      struct.id = 1.1;
+      doIt(
+        "float id",
+        new RangeError("if struct contains id, then it must be an integer"));
+      struct.id = undefined;
+      doIt(
+        "undefined id",
+        new TypeError("if struct contains id, then it must be a number"));
+      delete struct.id;
+
       doIt("no goal", new TypeError("struct must contain goal as number"));
       struct.goal = "3";
       doIt("string goal", new TypeError("struct must contain goal as number"));
