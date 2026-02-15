@@ -106,7 +106,11 @@ export default class Game extends EventTarget {
     let points;
     if (tailor !== null && winner !== tailor) {
       points = 4;
-    } else if (tailor !== null && winner === tailor) {
+    } else if (
+      tailor !== null
+      && winner === tailor
+      && (ourPoints === 0 || theirPoints === 0)
+    ) {
       points = 2;
     } else {
       points = 1;
