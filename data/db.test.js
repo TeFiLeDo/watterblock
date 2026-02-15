@@ -48,18 +48,6 @@ export default function() {
       inst = null;
     });
 
-    QUnit.test.if(
-      "cleanup works",
-      // not yet baseline widely available, should be in November 2026
-      // TODO: check in November 2026, make unconditional if possible then
-      "databases" in indexedDB,
-      async function(assert) {
-        let dbs = await indexedDB.databases();
-        assert.true(
-          dbs.every(({name}) => name !== WbDb.DB_NAME_TEST),
-          "no testing db");
-      });
-
     QUnit.test("cannot call constructor", function(assert) {
       assert.throws(
         function() { new WbDb(); },
@@ -84,6 +72,18 @@ export default function() {
       assert.notStrictEqual(inst.db, null, "getting db succeeds");
       assert.strictEqual(inst.db.version, WbDb.DB_VERSION, "correct version");
     });
+
+    QUnit.test.if(
+      "cleanup works",
+      // not yet baseline widely available, should be in November 2026
+      // TODO: check in November 2026, make unconditional if possible then
+      "databases" in indexedDB,
+      async function(assert) {
+        let dbs = await indexedDB.databases();
+        assert.true(
+          dbs.every(({name}) => name !== WbDb.DB_NAME_TEST),
+          "no testing db");
+      });
 
     QUnit.test("opening is blocked", async function(assert) {
       let first = WbDb.get(true, 1);
