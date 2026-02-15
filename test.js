@@ -6,6 +6,7 @@ import game from "./models/game.test.js";
 import session from "./models/session.test.js";
 
 import db from "./data/db.test.js";
+import session_repo from "./data/session_repo.test.js";
 
 QUnit.module("models", function() {
   round();
@@ -16,4 +17,5 @@ QUnit.module("models", function() {
 
 QUnit.module("data", function() {
   db();
+  session_repo();
 });

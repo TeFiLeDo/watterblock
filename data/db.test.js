@@ -48,6 +48,7 @@ export default function() {
       });
     });
 
+    // close db after each test
     hooks.afterEach(function() {
       if (inst !== null)
         if (inst.open)
