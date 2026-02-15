@@ -13,6 +13,12 @@ export default function() {
       assert.true(round.canRaise(Team.They), "they initially can raise");
     });
 
+    QUnit.test("invalid constructor", function(assert) {
+      assert.throws(
+        function() {new Round("nope", "absolutely", "not"); },
+        new TypeError("unknown form of Round constructor"));
+    });
+
     QUnit.test("immediate victory", function(assert) {
       let round = new Round();
       round.winner = Team.We;

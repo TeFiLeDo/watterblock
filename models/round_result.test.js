@@ -11,6 +11,12 @@ export default function() {
       assert.strictEqual(rr.winner, Team.We, "correct winner");
     });
 
+    QUnit.test("invalid constructor", function(assert) {
+      assert.throws(
+        function() {new RoundResult("nope", "absolutely", "not"); },
+        new TypeError("unknown form of RoundResult constructor"));
+    });
+
     QUnit.test("toStruct", function(assert) {
       let rr = new RoundResult(2, Team.They);
       let struct = rr.toStruct();

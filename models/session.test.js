@@ -19,6 +19,12 @@ export default function() {
       assert.strictEqual(session.theirTeam, "", "their team name");
     });
 
+    QUnit.test("invalid constructor", function(assert) {
+      assert.throws(
+        function() {new Session("nope", "absolutely", "not"); },
+        new TypeError("unknown form of Session constructor"));
+    });
+
     QUnit.test("set goal", function(assert) {
       let session = new Session();
       assert.strictEqual(session.goal, 11, "initial goal");

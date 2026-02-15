@@ -23,6 +23,12 @@ export default function() {
       );
     });
 
+    QUnit.test("invalid constructor", function(assert) {
+      assert.throws(
+        function() {new Game("nope", "absolutely", "not"); },
+        new TypeError("unknown form of Game constructor"));
+    });
+
     QUnit.test("low goal", function(assert) {
       assert.throws(
         function() { new Game(0); },
