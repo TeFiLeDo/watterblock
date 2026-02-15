@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de-AT">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Watterblock</title>
+  <script src="vendored/mithril-2.3.8.js" defer></script>
+  <script type="module">
+    // initialize DB early
+    import WbDb from "./data/db.js";
+    WbDb.get();
+
+    // mount app
+    import App from "./ui/app.js";
+    m.mount(document.body, App);
+  </script>
+</head>
+
+<body>
+  <p>Watterblock wird geladen…</p>
+  <noscript>
+    <p>Das Laden des Watterblocks ist fehlgeschlagen.</p>
+    <p>
+      Der Watterblock ist ein Programm, dass direkt in deinem Browser läuft.
+      Der Server sendet nur am Anfang die benötigten Dateien. Für die
+      Funktionalität ist daher <em>JavaScript</em> zwingend erforderlich.
+    </p>
+    <p><strong>Bitte aktiviere <em>JavaScript</em> wieder.</strong></p>
+  </noscript>
+</body>
+
+</html>
