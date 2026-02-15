@@ -56,7 +56,7 @@ export class Round extends EventTarget {
     } else if (typeof value === "object" && theyLimit === undefined) {
       this.#fromStruct(value);
     } else {
-      throw new TypeError("unknown form for Round constructor");
+      throw new TypeError("unknown form of Round constructor");
     }
   }
 

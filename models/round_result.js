@@ -21,7 +21,7 @@ export default class RoundResult {
     } else if (typeof value === "object" && winner === undefined) {
       this.#fromStruct(value);
     } else {
-      throw new TypeError("unknown form for RoundResult constructor");
+      throw new TypeError("unknown form of RoundResult constructor");
     }
   }
 

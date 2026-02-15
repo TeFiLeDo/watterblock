@@ -61,17 +61,17 @@ export default function() {
       });
 
     QUnit.test("cannot call constructor", function(assert) {
-      assert.throws(function() {
-        new WbDb();
-      });
+      assert.throws(
+        function() { new WbDb(); },
+        new TypeError("WbDb may not be constructed externally"));
 
-      assert.throws(function() {
-        new WbDb(true);
-      });
+      assert.throws(
+        function() { new WbDb(true); },
+        new TypeError("WbDb may not be constructed externally"));
 
-      assert.throws(function() {
-        new WbDb(true, 1);
-      });
+      assert.throws(
+        function() { new WbDb(true, 1); },
+        new TypeError("WbDb may not be constructed externally"));
     });
 
     QUnit.test("open db", async function(assert) {

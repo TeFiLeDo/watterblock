@@ -179,12 +179,12 @@ export default class Game extends EventTarget {
       throw new TypeError("struct must contain currentRound as object");
     if (this.result.winner === null) {
       if (value.currentRound === null)
-        throw new TypeError(
+        throw new Error(
           "struct of ongoing game must contain current round");
       else
         this.#currentRound = new Round(value.currentRound);
     } else if (value.currentRound !== null)
-      throw new TypeError(
+      throw new Error(
         "struct of finished game must not contain current round");
   }
 }

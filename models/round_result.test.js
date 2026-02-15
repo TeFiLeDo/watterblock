@@ -32,24 +32,33 @@ export default function() {
 
     QUnit.test("fromStruct - invalid", function(assert) {
       let struct = {};
-      function doIt(message) {
-        assert.throws(function() { new Round(struct); }, message);
+      function doIt(message, error) {
+        assert.throws(function() { new RoundResult(struct); }, error, message);
       }
 
-      doIt("no points");
+      doIt("no points", new TypeError("struct must contain points as number"));
       struct.points = "4";
-      doIt("string points");
+      doIt(
+        "string points",
+        new TypeError("struct must contain points as number"));
       struct.points = 4.1;
-      doIt("non-int points");
+      doIt(
+        "non-int points",
+        new RangeError("struct must contain points >= 2 as integer"));
       struct.points = 1;
-      doIt("small points");
+      doIt(
+        "small points",
+        new RangeError("struct must contain points >= 2 as integer"));
       struct.points = 4;
 
-      doIt("no winner");
+      doIt("no winner", new TypeError("struct must contain winner"));
       struct.winner = "they";
-      doIt("string winner");
+      doIt(
+        "string winner", new TypeError("struct must contain winner as Team"));
       struct.winner = -1;
-      doIt("non-team winner");
+      doIt(
+        "non-team winner",
+        new TypeError("struct must contain winner as Team"));
       struct.winner = Team.They;
 
       new RoundResult(struct);

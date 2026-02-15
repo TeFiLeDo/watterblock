@@ -26,9 +26,10 @@ export default function() {
     QUnit.test("multiple victories", function(assert) {
       let round = new Round();
       round.winner = Team.They;
-      assert.throws(function() {
-        round.winner = Team.We;
-      }, "victory cannot be stolen");
+      assert.throws(
+        function() { round.winner = Team.We; },
+        new Error("decided round cannot be won again"),
+        "victory cannot be stolen");
     });
 
     QUnit.test("single raise", function(assert) {
@@ -155,45 +156,71 @@ export default function() {
 
     QUnit.test("fromStruct - invalid", function(assert) {
       let struct = {};
-      function doIt(message) {
-        assert.throws(function() { new Round(struct); }, message);
+      function doIt(message, error) {
+        assert.throws(function() { new Round(struct); }, error, message);
       }
 
-      doIt("no points");
+      doIt("no points", new TypeError("struct must contain points as number"));
       struct.points = "2";
-      doIt("string points");
+      doIt(
+        "string points",
+        new TypeError("struct must contain points as number"));
       struct.points = 1.5;
-      doIt("non-int points");
+      doIt(
+        "non-int points",
+        new RangeError("struct must contain points >= 2 as integer"));
       struct.points = 1;
-      doIt("small points");
+      doIt(
+        "small points",
+        new RangeError("struct must contain points >= 2 as integer"));
       struct.points = 2;
 
-      doIt("no raisedLast");
+      doIt("no raisedLast", new TypeError("struct must contain raisedLast"));
       struct.raisedLast = "we";
-      doIt("string raisedLast");
+      doIt(
+        "string raisedLast",
+        new TypeError("struct must contain raisedLast as Team or null"));
       struct.raisedLast = -1;
-      doIt("raisedLast not actual team");
+      doIt(
+        "raisedLast not actual team",
+        new TypeError("struct must contain raisedLast as Team or null"));
       struct.raisedLast = null;
 
-      doIt("no winner");
+      doIt("no winner", new TypeError("struct must contain winner"));
       struct.winner = "they";
-      doIt("string winner");
+      doIt(
+        "string winner",
+        new TypeError("struct must contain winner as Team or null"));
       struct.winner = -1;
-      doIt("winner not actual team");
+      doIt(
+        "winner not actual team",
+        new TypeError("struct must contain winner as Team or null"));
       struct.winner = null;
 
-      doIt("no ourLimit");
+      doIt(
+        "no ourLimit",
+        new TypeError("struct must contain ourLimit as number"));
       struct.ourLimit = "11";
-      doIt("string ourLimit");
+      doIt(
+        "string ourLimit",
+        new TypeError("struct must contain ourLimit as number"));
       struct.ourLimit = 1;
-      doIt("small ourLimit");
+      doIt(
+        "small ourLimit",
+        new RangeError("struct must contain ourLimit >= 2 as integer"));
       struct.ourLimit = 11;
 
-      doIt("no theirLimit");
+      doIt(
+        "no theirLimit",
+        new TypeError("struct must contain theirLimit as number"));
       struct.theirLimit = "11";
-      doIt("string theirLimit");
+      doIt(
+        "string theirLimit",
+        new TypeError("struct must contain theirLimit as number"));
       struct.theirLimit = 1;
-      doIt("small theirLimit");
+      doIt(
+        "small theirLimit",
+        new RangeError("struct must contain theirLimit >= 2 as integer"));
       struct.theirLimit = 11;
 
       new Round(struct);

@@ -24,7 +24,18 @@ export default function() {
       assert.strictEqual(session.goal, 11, "initial goal");
       session.goal = 3;
       assert.strictEqual(session.goal, 3, "changed goal");
-      assert.throws(function() { session.goal = 0; }, "invalid goal");
+      assert.throws(
+        function() { session.goal = "0"; },
+        new TypeError("goal must be a number"),
+        "string goal");
+      assert.throws(
+        function() { session.goal = 0.5; },
+        new RangeError("goal must be integer >= 1"),
+        "float goal");
+      assert.throws(
+        function() { session.goal = 0; },
+        new RangeError("goal must be integer >= 1"),
+        "small goal");
     });
 
     QUnit.test("start game", function(assert) {
@@ -187,8 +198,8 @@ export default function() {
 
     QUnit.test("fromStruct - invalid", function(assert) {
       let struct = {};
-      function doIt(message) {
-        assert.throws(function() { new Session(struct); }, message);
+      function doIt(message, error) {
+        assert.throws(function() { new Session(struct); }, error, message);
       }
 
       let unfinished = new Game(3);
@@ -197,39 +208,60 @@ export default function() {
       finished.currentRound.raise(Team.We);
       finished.currentRound.winner = Team.They;
 
-      doIt("no goal");
+      doIt("no goal", new TypeError("struct must contain goal as number"));
       struct.goal = "3";
-      doIt("string goal");
+      doIt("string goal", new TypeError("struct must contain goal as number"));
       struct.goal = Math.PI;
-      doIt("non-int goal");
+      doIt(
+        "non-int goal",
+        new RangeError("struct must contain goal >= 1 as integer"));
       struct.goal = 0;
-      doIt("small goal");
+      doIt(
+        "small goal",
+        new RangeError("struct must contain goal >= 1 as integer"));
       struct.goal = 3;
 
-      doIt("no ourTeam");
+      doIt(
+        "no ourTeam", new TypeError("struct must contain ourTeam as string"));
       struct.ourTeam = 5;
-      doIt("number ourTeam");
+      doIt(
+        "number ourTeam",
+        new TypeError("struct must contain ourTeam as string"));
       struct.ourTeam = "";
 
-      doIt("no theirTeam");
+      doIt(
+        "no theirTeam",
+        new TypeError("struct must contain theirTeam as string"));
       struct.theirTeam = 6;
-      doIt("number theirTeam");
+      doIt(
+        "number theirTeam",
+        new TypeError("struct must contain theirTeam as string"));
       struct.theirTeam = "";
 
-      doIt("no games");
+      doIt("no games", new TypeError("struct must contain games"));
       struct.games = "nope";
-      doIt("string games");
+      doIt(
+        "string games", new TypeError("struct must contain games as array"));
       struct.games = ["nope", "again"];
-      doIt("string array games");
+      doIt(
+        "string array games",
+        new TypeError("unknown form of Game constructor"));
       struct.games = [unfinished.toStruct()];
-      doIt("unfinished game in games");
+      doIt(
+        "unfinished game in games", new Error("past games must be finished"));
       struct.games = [finished.toStruct()];
 
-      doIt("no currentGame");
+      doIt(
+        "no currentGame",
+        new TypeError("struct must contain currentGame as object"));
       struct.currentGame = "nope";
-      doIt("string currentGame");
+      doIt(
+        "string currentGame",
+        new TypeError("struct must contain currentGame as object"));
       struct.currentGame = finished.toStruct();
-      doIt("finished currentGame");
+      doIt(
+        "finished currentGame",
+        new Error("currentGame in struct must not be finished"));
       struct.currentGame = unfinished.toStruct();
 
       new Session(struct);

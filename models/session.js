@@ -145,7 +145,7 @@ export default class Session {
     }
 
     if (typeof value.goal !== "number")
-      throw new TypError("struct must contain goal as number");
+      throw new TypeError("struct must contain goal as number");
     if (!Number.isInteger(value.goal) || value.goal < 1)
       throw new RangeError("struct must contain goal >= 1 as integer");
     this.#goal = value.goal;
@@ -172,7 +172,7 @@ export default class Session {
     if (value.currentGame !== null) {
       this.#currentGame = new Game(value.currentGame);
       if (this.#currentGame.result.winner !== null)
-        throw new Error("currentGame in struct mustnot be finished");
+        throw new Error("currentGame in struct must not be finished");
     }
   }
 }

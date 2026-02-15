@@ -24,7 +24,10 @@ export default function() {
     });
 
     QUnit.test("low goal", function(assert) {
-      assert.throws(function() { new Game(0); }, "goal must be 1 or higher");
+      assert.throws(
+        function() { new Game(0); },
+        new RangeError("goal must be at least 1"),
+        "goal must be 1 or higher");
     });
 
     QUnit.test("higher goal", function(assert) {
@@ -265,36 +268,52 @@ export default function() {
 
     QUnit.test("fromStruct - invalid", function(assert) {
       let struct = {};
-      function doIt(message) {
-        assert.throws(function() { new Game(struct); }, message);
+      function doIt(message, error) {
+        assert.throws(function() { new Game(struct); }, error, message);
       }
 
-      doIt("no goal");
+      doIt("no goal", new TypeError("struct must contain goal as number"));
       struct.goal = "3";
-      doIt("string goal");
+      doIt("string goal", new TypeError("struct must contain goal as number"));
       struct.goal = Math.PI;
-      doIt("non-int goal");
+      doIt(
+        "non-int goal",
+        new RangeError("struct must contain goal >= 1 as integer"));
       struct.goal = 0;
-      doIt("small goal");
+      doIt(
+        "small goal",
+        new RangeError("struct must contain goal >= 1 as integer"));
       struct.goal = 3;
 
-      doIt("no rounds");
+      doIt("no rounds", new TypeError("struct must contain rounds"));
       struct.rounds = "nope";
-      doIt("rounds not array");
+      doIt(
+        "rounds not array",
+        new TypeError("struct must contain rounds as array"));
       struct.rounds = ["nope", "again"];
-      doIt("string array rounds");
+      doIt(
+        "string array rounds",
+        new TypeError("unknown form of RoundResult constructor"));
       struct.rounds = [];
 
-      doIt("no currentRound");
+      doIt(
+        "no currentRound",
+        new TypeError("struct must contain currentRound as object"));
       struct.currentRound = "nope";
-      doIt("string currentround");
+      doIt(
+        "string currentRound",
+        new TypeError("struct must contain currentRound as object"));
       struct.currentRound = null;
-      doIt("missing currentRound");
+      doIt(
+        "missing currentRound",
+        new Error("struct of ongoing game must contain current round"));
       struct.currentRound = new Round().toStruct();
       new Game(struct);
 
       struct.rounds = [ new RoundResult(3, Team.They).toStruct() ];
-      doIt("unneeded currentRound");
+      doIt(
+        "unneeded currentRound",
+        new Error("struct of finished game must not contain current round"));
       struct.currentRound = null;
       new Game(struct);
     });
