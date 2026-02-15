@@ -2,6 +2,7 @@
 
 import { Round, Team } from "./round.js";
 
+/** A finished round of Watten. */
 export default class RoundResult {
   /** How many points the round was worth.
    * @type {number}

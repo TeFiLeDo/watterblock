@@ -1,5 +1,12 @@
 "use strict";
 
+// Please note that the singleton behavior of the `WbDb` class in production
+// can currently not be tested. The actual singleton cannot be used because
+// that would mean opening the database, and potentially performing a
+// transaction that is not yet finished, potentially leading to data loss.
+// Setting up a second singleton instance for testing is possible, but would
+// not actually test the production variant.
+
 import { Round } from "../models/round.js";
 import WbDb from "./db.js";
 

@@ -1,12 +1,27 @@
 "use strict";
 
+/** A wrapper around an IndexedDB.
+ *
+ * This wrapper handles the following tasks:
+ * 1. Open the connection to the database.
+ * 2. Transform the events of that request into a form more suitable for UI.
+ * 3. Manage the DB schema (object stores, indexes, migrations, …).
+ *
+ * In production this also behaves as a singleton, while allowing multiple
+ * instances specifically for testing.
+ */
 export default class WbDb extends EventTarget {
+  /** The name of the event fired when the state changes. */
   static get EVENT_CHANGE() { return "change"; }
 
+  /** The name of the `IDBDatabase`. */
   static get DB_NAME() { return "watterblock"; }
+  /** The name of the test `IDBDatabase`. */
   static get DB_NAME_TEST() { return "test-watterblock"; }
+  /** The currently correct DB version. */
   static get DB_VERSION() { return 1; }
 
+  /** The name of the `IDBObjectStore` for `Session`s. */
   static get OS_SESSIONS() { return "sessions"; }
 
   /** Whether the WbDb constructor may be called. */

@@ -3,6 +3,19 @@
 import Game from "./game.js";
 import { Team } from "./round.js";
 
+/** A session of Watten.
+ *
+ * A session consists of several games, and can be continued for as long as the
+ * players want to.
+ *
+ * This class keeps track of various games and offers the functionality to
+ * start new ones. It also has a `result` property, that calculates the current
+ * points totals.
+ *
+ * Note that game points are punitive, players want to avoid earning them.
+ * Sessions are also self contained, there is no higher construct they are a
+ * part of.
+ */
 export default class Session {
   /** The ID of this session. */
   id = null;
@@ -93,6 +106,7 @@ export default class Session {
     this.#currentGame = null;
   }
 
+  /** #gameFinishedHandler, but bound to this instance. */
   #boundGameFinishedHandler = this.#gameFinishedHandler.bind(this);
 
   constructor(value) {

@@ -31,6 +31,8 @@ export const Team = Object.freeze({
  * This project is not concerned with creating an online version of the game,
  * the aim is to create a convenient score keeping system. Therefore this class
  * only implements the raising mechanics, and no actual game play.
+ *
+ * Note that round points are positive, players want to accumulate them.
  */
 export class Round extends EventTarget {
   /** The event triggered when the round is won. */

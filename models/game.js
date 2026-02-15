@@ -9,8 +9,10 @@ import RoundResult from "./round_result.js";
  * a points goal.
  *
  * This class keeps track of individual rounds and their results, and sets up
- * new ones until the game is finished. It also has a `results` property, that
+ * new ones until the game is finished. It also has a `result` property, that
  * calculates who won and how many points they earned.
+ *
+ * Note that game points are punitive, players want to avoid earning them.
  */
 export default class Game extends EventTarget {
   /** The event triggered when the game is finished. */
@@ -134,6 +136,7 @@ export default class Game extends EventTarget {
     }
   }
 
+  /** #handleRoundFinished, but bound to this instance. */
   #boundRoundFinishedHandler = this.#handleRoundFinished.bind(this);
 
   /** Export the data of this `Game` as a plain JS object with fields.
