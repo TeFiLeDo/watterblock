@@ -19,11 +19,14 @@ following principles will guide its development.
    environments, like many modern JS frameworks, are very tedious to keep up with. Therefore all
    libraries must be stable and consistent. Also, I don't want to spend much time wrangling npm.
    Therefore all dependencies must be vendorable as a couple of files.
-3. **Baseline HTML, CSS, JS:** I don't want to spend a lot of time on build tools, transpilers,
-   and similar things. Therefore all code I write has to be in one of the three fundamental web
-   languages. Also, I target _baseline widely available_, nothing else. All dev tools used have to
-   be able to run in the browser.
-4. **Extensive tests:** I don't want to spend a lot of time on bug hunting, therefore everything
+3. **Browser based development:** I don't want to spend a lot of time on build tools, transpilers,
+   and similar things. All code has to be able to run in the browser in the form it is written. All
+   dev tools (like the testing framework) have to be able to run in the browser.
+4. **Targetting Baseline:** The limited time for maintenance means I won't be able to do testing
+   for all browser/version/os tripples. Instead, I'll target "baseline widely available" and rely
+   on it's correctness for portability. I'll also use features that are "baseline newly available",
+   but only with feature checking, which I'll only do for them.
+5. **Extensive tests:** I don't want to spend a lot of time on bug hunting, therefore everything
    that can be tested automatically should be.
 
 Structure
