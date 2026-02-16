@@ -35,8 +35,8 @@ export const Team = Object.freeze({
  * Note that round points are positive, players want to accumulate them.
  */
 export class Round extends EventTarget {
-  /** The event triggered when the round is won. */
-  static winEvent= "roundWon";
+  /** The event triggered when something about the round changes. */
+  static get EVENT_CHANGE() { return "wb:round:change"; }
 
   /** The maximum the "we" team may raise to. */
   #ourLimit = 11;
@@ -100,7 +100,7 @@ export class Round extends EventTarget {
       throw new Error("decided round cannot be won again");
 
     this.#winner = team;
-    this.dispatchEvent(new CustomEvent(Round.winEvent));
+    this.dispatchEvent(new CustomEvent(Round.EVENT_CHANGE));
   }
 
   /** Check whether the round has been decided. */
@@ -147,6 +147,7 @@ export class Round extends EventTarget {
 
     this.#raisedLast = team;
     this.#points += 1;
+    this.dispatchEvent(new CustomEvent(Round.EVENT_CHANGE));
   }
 
   /** Export the data of this `Round` as a plain JS object with fields.

@@ -101,10 +101,29 @@ export default function() {
 
     QUnit.test("victory causes event", function(assert) {
       let round = new Round();
-      round.addEventListener(Round.winEvent, function() {
+      round.addEventListener(Round.EVENT_CHANGE, function() {
         assert.step("event");
       });
       round.winner = Team.We;
+      assert.verifySteps(["event"], "event was triggered");
+    });
+
+    QUnit.test("raising causes event", function(assert) {
+      let round = new Round();
+      round.addEventListener(Round.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+      round.raise(Team.We);
+      round.raise(Team.They);
+      assert.verifySteps(["event", "event"], "events were triggered");
+    });
+
+    QUnit.test("winning through raising causes event", function(assert) {
+      let round = new Round(2, 2);
+      round.addEventListener(Round.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+      round.raise(Team.We);
       assert.verifySteps(["event"], "event was triggered");
     });
 

@@ -60,7 +60,7 @@ export default class Game extends EventTarget {
 
       this.#currentRound = new Round(this.#goal, this.#goal);
       this.#currentRound.addEventListener(
-        Round.winEvent, this.#boundRoundFinishedHandler);
+        Round.EVENT_CHANGE, this.#boundHandleRoundChange);
     } else if (typeof value === "object") {
       this.#fromStruct(value);
     } else {
@@ -119,29 +119,33 @@ export default class Game extends EventTarget {
     return {winner, points, ourPoints, theirPoints};
   }
 
-  /** Handle it when the current round is finished. */
-  #handleRoundFinished() {
-    this.#currentRound.removeEventListener(
-      Round.winEvent, this.#boundRoundFinishedHandler);
-    this.#rounds.push(
-      new RoundResult(this.#currentRound.points, this.#currentRound.winner));
-    this.#currentRound = null;
+  /** Handle changes to the current round. */
+  #handleRoundChange() {
+    if (this.#currentRound.decided) {
+      this.#currentRound.removeEventListener(
+        Round.EVENT_CHANGE, this.#boundHandleRoundChange);
+      this.#rounds.push(
+        new RoundResult(this.#currentRound.points, this.#currentRound.winner));
+      this.#currentRound = null;
 
-    let result = this.result;
+      let result = this.result;
 
-    if (result.winner === null) {
-      this.#currentRound = new Round(
-        Math.max(this.#goal - result.ourPoints, 2),
-        Math.max(this.#goal - result.theirPoints, 2));
-      this.#currentRound.addEventListener(
-        Round.winEvent, this.#boundRoundFinishedHandler);
-    } else {
-      this.dispatchEvent(new CustomEvent(Game.finishedEvent));
+      if (result.winner === null) {
+        this.#currentRound = new Round(
+          Math.max(this.#goal - result.ourPoints, 2),
+          Math.max(this.#goal - result.theirPoints, 2));
+        this.#currentRound.addEventListener(
+          Round.EVENT_CHANGE, this.#boundHandleRoundChange);
+      } else {
+        this.dispatchEvent(new CustomEvent(Game.finishedEvent));
+      }
     }
+
+
   }
 
-  /** #handleRoundFinished, but bound to this instance. */
-  #boundRoundFinishedHandler = this.#handleRoundFinished.bind(this);
+  /** #handleRoundChange, but bound to this instance. */
+  #boundHandleRoundChange = this.#handleRoundChange.bind(this);
 
   /** Export the data of this `Game` as a plain JS object with fields.
    *
@@ -188,8 +192,11 @@ export default class Game extends EventTarget {
       if (value.currentRound === null)
         throw new Error(
           "struct of ongoing game must contain current round");
-      else
+      else {
         this.#currentRound = new Round(value.currentRound);
+        this.#currentRound.addEventListener(
+          Round.EVENT_CHANGE, this.#boundHandleRoundChange);
+      }
     } else if (value.currentRound !== null)
       throw new Error(
         "struct of finished game must not contain current round");
