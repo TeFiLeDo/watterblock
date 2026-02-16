@@ -16,9 +16,28 @@ import { Team } from "./round.js";
  * Sessions are also self contained, there is no higher construct they are a
  * part of.
  */
-export default class Session {
+export default class Session extends EventTarget {
+  /** The event triggered when something about the session changes. */
+  static get EVENT_CHANGE() { return "wb:session:change"; }
+
   /** The ID of this session. */
-  id = null;
+  #id = null;
+
+  /** Get the ID of this session. */
+  get id() {
+    return this.#id;
+  }
+
+  /** Set the ID of this session.
+   *
+   * Note that an existing ID cannot be overwritten.
+   */
+  set id(value) {
+    if (this.#id !== null)
+      throw new Error("the ID cannot be changed if it has been set");
+    this.#id = value;
+    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+  }
 
   /** The amout of points at which individual games are won.
    *
@@ -38,13 +57,36 @@ export default class Session {
     if (!Number.isInteger(value) || value < 1)
       throw new RangeError("goal must be integer >= 1");
     this.#goal = value;
+    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
   }
 
   /** The name or members of the "we" team. */
-  ourTeam = "";
+  #ourTeam = "";
+
+  /** Get the name or members of the "we" team. */
+  get ourTeam() {
+    return this.#ourTeam;
+  }
+
+  /** Set the name or members of the "we" team. */
+  set ourTeam(value) {
+    this.#ourTeam = value;
+    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+  }
 
   /** The name or members of the "they" team. */
-  theirTeam = "";
+  #theirTeam = "";
+
+  /** Get the name or members of the "they" team. */
+  get theirTeam() {
+    return this.#theirTeam;
+  }
+
+  /** Set the name or members of the "they" team. */
+  set theirTeam(value) {
+    this.#theirTeam = value;
+    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+  }
 
   /** The finished games.
    * @type {Game[]}
@@ -75,6 +117,7 @@ export default class Session {
       this.#currentGame = new Game(this.goal);
       this.#currentGame.addEventListener(
         Game.EVENT_CHANGE, this.#boundHandleGameChange);
+      this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
     }
   }
 
@@ -106,12 +149,14 @@ export default class Session {
       this.#games.push(this.#currentGame);
       this.#currentGame = null;
     }
+    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
   }
 
   /** #handleGameChange, but bound to this instance. */
   #boundHandleGameChange = this.#handleGameChange.bind(this);
 
   constructor(value) {
+    super();
     if (value === undefined) {
     } else if (typeof value === "object") {
       this.#fromStruct(value);
@@ -136,15 +181,15 @@ export default class Session {
   toStruct() {
     let res = {
       goal: this.#goal,
-      ourTeam: this.ourTeam,
-      theirTeam: this.theirTeam,
+      ourTeam: this.#ourTeam,
+      theirTeam: this.#theirTeam,
       games: this.#games.map((g) => g.toStruct()),
       currentGame:
         this.#currentGame !== null ? this.#currentGame.toStruct() : null,
     };
 
-    if (this.id !== null)
-      res.id = this.id;
+    if (this.#id !== null)
+      res.id = this.#id;
 
     return res;
   }
@@ -160,7 +205,7 @@ export default class Session {
       if (!Number.isInteger(value.id))
         throw new RangeError(
           "if struct contains id, then it must be an integer");
-      this.id = value.id;
+      this.#id = value.id;
     }
 
     if (typeof value.goal !== "number")
@@ -175,7 +220,7 @@ export default class Session {
 
     if (typeof value.theirTeam !== "string")
       throw new TypeError("struct must contain theirTeam as string");
-    this.theirTeam = value.theirTeam;
+    this.#theirTeam = value.theirTeam;
 
     if (!("games" in value))
       throw new TypeError("struct must contain games");

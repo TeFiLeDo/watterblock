@@ -28,8 +28,13 @@ export default function() {
     QUnit.test("set goal", function(assert) {
       let session = new Session();
       assert.strictEqual(session.goal, 11, "initial goal");
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+
       session.goal = 3;
       assert.strictEqual(session.goal, 3, "changed goal");
+
       assert.throws(
         function() { session.goal = "0"; },
         new TypeError("goal must be a number"),
@@ -42,6 +47,8 @@ export default function() {
         function() { session.goal = 0; },
         new RangeError("goal must be integer >= 1"),
         "small goal");
+
+      assert.verifySteps(["event"], "event happened once");
     });
 
     QUnit.test("start game", function(assert) {
@@ -115,6 +122,62 @@ export default function() {
           theirPoints: 0,
         },
         "initial game still current");
+    });
+
+    QUnit.test("game addition triggers change event", function(assert) {
+      let session = new Session();
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+      session.anotherGame();
+      assert.verifySteps(["event"], "event was triggered");
+    });
+
+    QUnit.test("game change triggers change event", function(assert) {
+      let session = new Session();
+      session.anotherGame();
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+      session.currentGame.currentRound.raise(Team.They);
+      assert.verifySteps(["event"], "event was triggered");
+    });
+
+    QUnit.test("setting ID", function(assert){
+      let session = new Session();
+      assert.strictEqual(session.id, null, "initially no id");
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+
+      session.id = 18;
+      assert.strictEqual(session.id, 18, "correct id");
+      assert.verifySteps(["event"], "event happened");
+    });
+
+    QUnit.test("setting our team", function(assert){
+      let session = new Session();
+      assert.strictEqual(session.ourTeam, "", "initially no ourTeam");
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+
+      session.ourTeam = "This is us!";
+      assert.strictEqual(session.ourTeam, "This is us!", "correct ourTeam");
+      assert.verifySteps(["event"], "event happened");
+    });
+
+    QUnit.test("setting their team", function(assert){
+      let session = new Session();
+      assert.strictEqual(session.theirTeam, "", "initially no theirTeam");
+      session.addEventListener(Session.EVENT_CHANGE, function() {
+        assert.step("event");
+      });
+
+      session.theirTeam = "This is them!";
+      assert.strictEqual(
+        session.theirTeam, "This is them!", "correct theirTeam");
+      assert.verifySteps(["event"], "event happened");
     });
 
     QUnit.test("toStruct - new session", function(assert) {
