@@ -58,6 +58,7 @@ export default function() {
       game.currentRound.winner = Team.We;
 
       assert.equal(game.rounds.length, 1, "one round played");
+      assert.false(game.decided, "game is not decided");
       assert.strictEqual(game.rounds[0].points, 2, "first round points");
       assert.strictEqual(game.rounds[0].winner, Team.We, "first round winner");
       assert.notStrictEqual(game.currentRound, null, "current round there");
@@ -81,6 +82,7 @@ export default function() {
       game.currentRound.winner = Team.They;
 
       assert.equal(game.rounds.length, 2, "two round played");
+      assert.false(game.decided, "game is not decided");
       assert.strictEqual(game.rounds[1].points, 3, "second round points");
       assert.strictEqual(
         game.rounds[1].winner, Team.They, "second round winner");
@@ -110,6 +112,31 @@ export default function() {
 
       assert.equal(game.rounds.length, 7, "seven rounds played");
       assert.strictEqual(game.currentRound, null, "no further rounds");
+      assert.true(game.decided, "game is decided");
+      assert.deepEqual(
+        game.result,
+        {
+          winner: Team.We,
+          points: 1,
+          ourPoints: 12,
+          theirPoints: 2,
+        },
+        "final results",
+      );
+    });
+
+    QUnit.test("regular victory after near tailor", function(assert) {
+      let game = new Game();
+      game.currentRound.winner = Team.We; // 2
+      game.currentRound.winner = Team.We; // 4
+      game.currentRound.winner = Team.We; // 6
+      game.currentRound.winner = Team.We; // 8
+      game.currentRound.winner = Team.We; // 10
+      game.currentRound.winner = Team.They; // 2
+      game.currentRound.winner = Team.We; // 12
+
+      assert.equal(game.rounds.length, 7, "seven rounds played");
+      assert.true(game.decided, "no further rounds");
       assert.deepEqual(
         game.result,
         {
@@ -193,13 +220,14 @@ export default function() {
       );
     });
 
-    QUnit.test("finished event", function(assert) {
-      let game = new Game(2);
-      game.addEventListener(Game.finishedEvent, function() {
+    QUnit.test("round change triggers event", function(assert) {
+      let game = new Game(3);
+      game.addEventListener(Game.EVENT_CHANGE, function() {
         assert.step("event");
       });
+      game.currentRound.raise(Team.We);
       game.currentRound.winner = Team.They;
-      assert.verifySteps(["event"], "event was triggered");
+      assert.verifySteps(["event", "event"], "events were triggered");
     });
 
     QUnit.test("toStruct - unfinished", function(assert) {

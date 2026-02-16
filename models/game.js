@@ -15,8 +15,8 @@ import RoundResult from "./round_result.js";
  * Note that game points are punitive, players want to avoid earning them.
  */
 export default class Game extends EventTarget {
-  /** The event triggered when the game is finished. */
-  static finishedEvent = "gameFinished";
+  /** The event triggered when something about the game changes. */
+  static get EVENT_CHANGE() { return "wb:game:change"; }
 
   /** The finished rounds.
    * @type {RoundResult[]}
@@ -66,6 +66,11 @@ export default class Game extends EventTarget {
     } else {
       throw new TypeError("unknown form of Game constructor");
     }
+  }
+
+  /** Check whether the game is finished. */
+  get decided() {
+    return this.#currentRound === null;
   }
 
   /** Get the results of the game. */
@@ -136,12 +141,10 @@ export default class Game extends EventTarget {
           Math.max(this.#goal - result.theirPoints, 2));
         this.#currentRound.addEventListener(
           Round.EVENT_CHANGE, this.#boundHandleRoundChange);
-      } else {
-        this.dispatchEvent(new CustomEvent(Game.finishedEvent));
       }
     }
 
-
+    this.dispatchEvent(new CustomEvent(Game.EVENT_CHANGE));
   }
 
   /** #handleRoundChange, but bound to this instance. */

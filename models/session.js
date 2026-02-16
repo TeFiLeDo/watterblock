@@ -74,7 +74,7 @@ export default class Session {
     if (this.#currentGame === null) {
       this.#currentGame = new Game(this.goal);
       this.#currentGame.addEventListener(
-        Game.finishedEvent, this.#boundGameFinishedHandler);
+        Game.EVENT_CHANGE, this.#boundHandleGameChange);
     }
   }
 
@@ -98,16 +98,18 @@ export default class Session {
     return { ourPoints, theirPoints };
   }
 
-  /** Handle it when the current game is finished. */
-  #gameFinishedHandler() {
-    this.#currentGame.removeEventListener(
-      Game.finishedEvent, this.#boundGameFinishedHandler);
-    this.#games.push(this.#currentGame);
-    this.#currentGame = null;
+  /** Handle changes to the current game. */
+  #handleGameChange() {
+    if (this.#currentGame.decided) {
+      this.#currentGame.removeEventListener(
+        Game.EVENT_CHANGE, this.#boundHandleGameChange);
+      this.#games.push(this.#currentGame);
+      this.#currentGame = null;
+    }
   }
 
-  /** #gameFinishedHandler, but bound to this instance. */
-  #boundGameFinishedHandler = this.#gameFinishedHandler.bind(this);
+  /** #handleGameChange, but bound to this instance. */
+  #boundHandleGameChange = this.#handleGameChange.bind(this);
 
   constructor(value) {
     if (value === undefined) {
