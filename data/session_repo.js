@@ -69,16 +69,29 @@ export default class SessionRepo {
   static put(session, transaction) {
     if (!(session instanceof Session))
       throw new TypeError("session to put in must be an actual Session");
+
     transaction = toTransaction(transaction, [WbDb.OS_SESSIONS], "readwrite");
     let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
 
     let struct = session.toStruct();
     let req = requestToPromise(sessions.put(struct));
 
-    if (session.id === null)
-      req.then((id) => session.id = id);
+    // promise with which the session object can be altered
+    let alt = req;
 
-    return req;
+    // add id to original object if it is new
+    if (session.id === null)
+      alt = alt.then((id) => session.id = id);
+
+    // add change listener t oobject.
+    alt.then(() => { if (session[SessionRepo.#marker] === undefined) {
+      session.addEventListener(
+        Session.EVENT_CHANGE, SessionRepo.#handleChange);
+      session[SessionRepo.#marker] = transaction.db;
+    }});
+
+    // make sure alt is handled first
+    return req.then(res => res);
   }
 
   /** Get all sessions in the repository.
@@ -92,6 +105,23 @@ export default class SessionRepo {
     let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
 
     sessions = await requestToPromise(sessions.getAll());
-    return sessions.map((session) =>  new Session(session));
+    return sessions.map(function(session) {
+      let res = new Session(session);
+      res.addEventListener(Session.EVENT_CHANGE, SessionRepo.#handleChange);
+      res[SessionRepo.#marker] = transaction.db;
+      return res;
+    });
+  }
+
+  /** The symbol used to attach needed data to sessions. */
+  static #marker = Symbol("data/session_store");
+
+  /** Handle the Session.EVENT_CHANGE event, by storing the changed session in
+   * the DB.
+   */
+  static async #handleChange() {
+    if (!(this instanceof Session))
+      throw new TypeError("session to put in must be an actual Session");
+    SessionRepo.put(this, this[SessionRepo.#marker]);
   }
 }

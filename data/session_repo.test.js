@@ -128,5 +128,29 @@ export default function() {
         assert.deepEqual(session.toStruct(), expected, "sessions match");
       }
     });
+
+    QUnit.test("new session reacts to changes", async function(assert) {
+      inst = WbDb.get(true);
+      await waitForChange(inst);
+
+      let session = new Session();
+      let id = await SessionRepo.put(session, inst);
+      assert.strictEqual(session.id, id, "session id has been updated");
+
+      session.ourTeam = "This is us!";
+      session.theirTeam = "This is them!";
+      session.goal = 2;
+      session.anotherGame();
+      session.currentGame.currentRound.winner = Team.We;
+      console.log("too late");
+
+      // give the change events a chance to execute
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      let sessions = await SessionRepo.getAll(inst);
+      assert.strictEqual(sessions.length, 1, "exactly one stored session");
+      assert.deepEqual(
+        sessions[0].toStruct(), session.toStruct(), "sessions match");
+    });
   });
 }
