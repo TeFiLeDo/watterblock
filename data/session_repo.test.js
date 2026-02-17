@@ -81,10 +81,9 @@ export default function() {
       let id = await SessionRepo.put(session, inst);
       assert.strictEqual(session.id, id, "session id has been updated");
 
-      let sessions = await SessionRepo.getAll(inst);
-      assert.strictEqual(sessions.length, 1, "one stored session");
+      let stored = await SessionRepo.get(id, inst);
       assert.deepEqual(
-        sessions[0].toStruct(), session.toStruct(), "sessions match");
+        stored.toStruct(), session.toStruct(), "sessions match");
     });
 
     QUnit.test("store two sessions", async function(assert) {
@@ -152,5 +151,7 @@ export default function() {
       assert.deepEqual(
         sessions[0].toStruct(), session.toStruct(), "sessions match");
     });
+
+
   });
 }

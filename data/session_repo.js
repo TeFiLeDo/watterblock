@@ -56,6 +56,18 @@ export default class SessionRepo {
     throw new TypeError("SessionRepo cannot be constructed");
   }
 
+  /** The symbol used to attach needed data to sessions. */
+  static #marker = Symbol("data/session_store");
+
+  /** Handle the Session.EVENT_CHANGE event, by storing the changed session in
+   * the DB.
+   */
+  static async #handleChange() {
+    if (!(this instanceof Session))
+      throw new TypeError("session to put in must be an actual Session");
+    SessionRepo.put(this, this[SessionRepo.#marker]);
+  }
+
   /** Put a session into the repository.
    *
    * If the passed session has no `id` set, the newly stored ID will be
@@ -94,6 +106,28 @@ export default class SessionRepo {
     return req.then(res => res);
   }
 
+  /** Get a specific session from the repository.
+   *
+   * @param {number} key The ID of the session to retrieve.
+   * @param {Transactable} transaction A transaction to use.
+   *
+   * @returns {Promise<Session | undefined>}
+   * The requested session, or undefined if it does not exist.
+   */
+  static async get(key, transaction) {
+    transaction = toTransaction(transaction, [WbDb.OS_SESSIONS], "readonly");
+    let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
+
+    let session = await requestToPromise(sessions.get(key));
+    if (session !== undefined) {
+      session = new Session(session);
+      session.addEventListener(
+        Session.EVENT_CHANGE, SessionRepo.#handleChange);
+      session[SessionRepo.#marker] = transaction.db;
+    }
+    return session;
+  }
+
   /** Get all sessions in the repository.
    *
    * @param {Transactable} transaction A transaction to use.
@@ -111,17 +145,5 @@ export default class SessionRepo {
       res[SessionRepo.#marker] = transaction.db;
       return res;
     });
-  }
-
-  /** The symbol used to attach needed data to sessions. */
-  static #marker = Symbol("data/session_store");
-
-  /** Handle the Session.EVENT_CHANGE event, by storing the changed session in
-   * the DB.
-   */
-  static async #handleChange() {
-    if (!(this instanceof Session))
-      throw new TypeError("session to put in must be an actual Session");
-    SessionRepo.put(this, this[SessionRepo.#marker]);
   }
 }
