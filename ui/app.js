@@ -1,12 +1,12 @@
 "use strict";
 
 import Session from "../models/session.js";
-import SessionView from "./session.js";
 import WbDb from "../data/db.js";
 import SessionRepo from "../data/session_repo.js";
+import SessionList from "./session_list.js";
 
 export default class App {
-  #session = null;
+  #sessions = [];
 
   constructor() {
     let db = WbDb.get();
@@ -17,21 +17,15 @@ export default class App {
   }
 
   async #dbReady() {
-    let sessions = await SessionRepo.getAll();
-    if (sessions.length === 0) {
-      this.#session = new Session();
-      SessionRepo.put(this.#session);
-    } else
-      this.#session = sessions[0];
-
+    this.#sessions = await SessionRepo.getAll();
     m.redraw();
   }
 
   view() {
-    if (this.#session === null) {
-      return m("p", "Warte auf Datenbank.");
-    }
-
-    return m(SessionView, { model: this.#session });
+    return m(SessionList, {
+      models: this.#sessions,
+      onSelect: (key) => console.log("selected", key),
+      onNew: () => console.log("new"),
+    });
   }
 }
