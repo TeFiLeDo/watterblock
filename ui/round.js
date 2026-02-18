@@ -12,40 +12,48 @@ export default class RoundView {
     else if (model.winner === Team.They)
       winner = "se";
 
-    return m("section", [
-      m("p", `${model.points} Punkte`),
-      m("div", [
-        m("button",
-          {
-            onclick: () => model.raise(Team.They),
-            disabled: !model.canRaise(Team.They),
+    return m("section.current-round", [
+      m("span.current-points", `${model.points}`),
+      m("button.they-raise",
+        {
+          onclick: () => model.raise(Team.They),
+          disabled: !model.canRaise(Team.They),
+        },
+        "se erhöhn",
+      ),
+      m("button.we-raise",
+        {
+          onclick: () => model.raise(Team.We),
+          disabled: !model.canRaise(Team.We),
+        },
+        "mia erhöhn",
+      ),
+      m("button.they-win",
+        {
+          onclick: () => {
+            model.winner = Team.They;
+            window.scrollTo({
+              top: document.body.scrollHeight,
+              behavior: "smooth",
+            });
           },
-          "se erhöhn",
-        ),
-        m("button",
-          {
-            onclick: () => model.raise(Team.We),
-            disabled: !model.canRaise(Team.We),
+          disabled: model.decided,
+        },
+        "se habn gwonnen",
+      ),
+      m("button.we-win",
+        {
+          onclick: () => {
+            model.winner = Team.We;
+            window.scrollTo({
+              top: document.body.scrollHeight,
+              behavior: "smooth",
+            });
           },
-          "mia erhöhn",
-        ),
-      ]),
-      m("div", [
-        m("button",
-          {
-            onclick: () => model.winner = Team.They,
-            disabled: model.decided,
-          },
-          "se habn gwonnen",
-        ),
-        m("button",
-          {
-            onclick: () => model.winner = Team.We,
-            disabled: model.decided,
-          },
-          "mia habn gwonnen",
-        ),
-      ]),
+          disabled: model.decided,
+        },
+        "mia habn gwonnen",
+      ),
     ]);
   }
 }

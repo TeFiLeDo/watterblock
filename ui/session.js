@@ -10,9 +10,7 @@ export default class SessionView {
 
     let res = model.result;
 
-    return m("article", {
-      class: ["session-view"],
-    }, [
+    return m("article.session-view", [
       m("button", { onclick: () => onDeselect() }, "Zruck"),
       m("table", [
         m("thead", [
@@ -20,8 +18,8 @@ export default class SessionView {
             m("th", "se"), m("th", "mia"),
           ]),
           m("tr", [
-            m("td", "•".repeat(res.theirPoints)),
-            m("td", "•".repeat(res.ourPoints)),
+            m("th", "•".repeat(res.theirPoints)),
+            m("th", "•".repeat(res.ourPoints)),
           ]),
         ]),
         model.games.map((g) => m(GameView, { model: g })),
@@ -29,11 +27,24 @@ export default class SessionView {
           ? m(GameView, { model: model.currentGame })
           : null,
       ]),
+      m(".spacer"),
       model.currentGame !== null
         ? model.currentGame.currentRound !== null
           ? m(RoundView, { model: model.currentGame.currentRound })
           : null
-        : m("button", { onclick: () => model.anotherGame() }, "no a spiel"),
+        : m(".continue", [
+            m("button",
+              {
+                onclick: () => {
+                  model.anotherGame();
+                  window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: "smooth",
+                  });
+                },
+              },
+              "no a spiel"),
+          ]),
     ]);
   }
 }

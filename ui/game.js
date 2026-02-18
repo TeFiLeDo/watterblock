@@ -12,12 +12,14 @@ export default class GameView {
     let markers = "•".repeat(points);
 
     return m("[", [
-      m("tbody", model.rounds.map(function(round) {
-        return m("tr", [
-          m("td", round.winner === Team.They ? round.points : ""),
-          m("td", round.winner === Team.We ? round.points : ""),
-        ]);
-      })),
+      (model.rounds.length !== 0)
+        ? m("tbody", model.rounds.map(function(round) {
+            return m("tr", [
+              m("td", round.winner === Team.They ? round.points : ""),
+              m("td", round.winner === Team.We ? round.points : ""),
+            ]);
+          }))
+        : m("tbody", [ m("td", "0"), m("td", "0") ]),
       (!model.decided)
         ? m("tfoot", [
             m("tr", [

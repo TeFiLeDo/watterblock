@@ -1,0 +1,105 @@
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  height: 1px;
+}
+
+.session-view {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  >.spacer {
+    flex-grow: 1;
+  }
+
+  table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    text-align: center;
+  }
+
+  th,
+  td {
+    border-right: 1px solid black;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  thead {
+    border-bottom: 1px solid black;
+    position: sticky;
+    top: 0;
+    background: white;
+  }
+
+  tbody {
+    border-bottom: 1px solid black;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+
+    min-height: 5px;
+  }
+}
+
+button {
+  border: none;
+  border-radius: 5px;
+  background: light-grey;
+  padding: 0.5em 1em;
+  margin: 0.5em;
+}
+
+.current-round {
+  display: grid;
+  grid-template-areas:
+    "they-raise current-points current-points we-raise"
+    "they-win they-win we-win we-win";
+  grid-template-columns: 1fr auto auto 1fr;
+
+  background: white;
+  position: sticky;
+  bottom: 0;
+
+  .current-points {
+    grid-area: current-points;
+    align-content: center;
+    margin: 0 1em;
+  }
+
+  .they-raise {
+    grid-area: they-raise;
+  }
+
+  .we-raise {
+    grid-area: we-raise;
+  }
+
+  .they-win {
+    grid-area: they-win;
+  }
+
+  .we-win {
+    grid-area: we-win;
+  }
+}
+
+.continue {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background: white;
+
+  >* {
+    width: calc(100% - 1em);
+  }
+}
