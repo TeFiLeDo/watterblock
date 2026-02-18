@@ -22,7 +22,7 @@ export default class Shell {
     if (this.#currentSession !== null)
       return m(SessionView, {
         model: this.#currentSession,
-        onDeselect: () => this.#currentSession = null;
+        onDeselect: () => this.#currentSession = null,
       });
 
     if (this.#sessions !== null)
