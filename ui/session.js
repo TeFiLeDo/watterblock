@@ -15,11 +15,8 @@ export default class SessionView {
       m("table", [
         m("thead", [
           m("tr", [
-            m("th", "se"), m("th", "mia"),
-          ]),
-          m("tr", [
-            m("th", "•".repeat(res.theirPoints)),
-            m("th", "•".repeat(res.ourPoints)),
+            m("th", ["se", " ", "•".repeat(res.theirPoints)]),
+            m("th", ["mia", " ", "•".repeat(res.ourPoints)]),
           ]),
         ]),
         model.games.map((g) => m(GameView, { model: g })),
