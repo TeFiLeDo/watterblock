@@ -235,6 +235,8 @@ export default class Session extends EventTarget {
       throw new TypeError("struct must contain currentGame as object");
     if (value.currentGame !== null) {
       this.#currentGame = new Game(value.currentGame);
+      this.#currentGame.addEventListener(
+        Game.EVENT_CHANGE, this.#boundHandleGameChange);
       if (this.#currentGame.result.winner !== null)
         throw new Error("currentGame in struct must not be finished");
     }
