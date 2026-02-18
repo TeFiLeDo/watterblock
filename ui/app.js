@@ -1,31 +1,43 @@
 "use strict";
 
-import Session from "../models/session.js";
 import WbDb from "../data/db.js";
-import SessionRepo from "../data/session_repo.js";
-import SessionList from "./session_list.js";
+import Shell from "./shell.js";
 
 export default class App {
-  #sessions = [];
+  #needsHandler = true;
 
   constructor() {
-    let db = WbDb.get();
-    if (db.open)
-      this.#dbReady();
-    else
-      db.addEventListener(WbDb.EVENT_CHANGE, this.#dbReady.bind(this));
-  }
-
-  async #dbReady() {
-    this.#sessions = await SessionRepo.getAll();
-    m.redraw();
+    WbDb.get().addEventListener(WbDb.EVENT_CHANGE, () => {
+      if (this.#needsHandler) {
+        WbDb.get().db.addEventListener("error", e => console.log(e));
+        this.#needsHandler = false;
+      }
+      m.redraw();
+    });
   }
 
   view() {
-    return m(SessionList, {
-      models: this.#sessions,
-      onSelect: (key) => console.log("selected", key),
-      onNew: () => console.log("new"),
-    });
+    let db = WbDb.get();
+
+    if (db.failed)
+      return m("[", [
+        m("h1", "Watterblock kann nicht geöffnet werden"),
+        m("p", "Die IndexedDB-Verbindung funktioniert gerade nicht"),
+      ]);
+
+    if (db.blocked)
+      return m("[", [
+        m("h1", "Watterblock muss warten"),
+        m("p",
+          "Bitte schließe alle anderen Tabs, in denen der Watterblock " +
+          "geöffnet ist"
+        ),
+        m("p", "Die Spieledatenbank muss aktualisiert werden."),
+      ]);
+
+    if (!db.open)
+      return m("p", "Öffne Datenbank, bitte warten…");
+
+    return m(Shell);
   }
 }

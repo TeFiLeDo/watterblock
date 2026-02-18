@@ -5,8 +5,9 @@ import GameView from "./game.js";
 
 export default class SessionView {
   /** @param {{ attrs: { model: Session } }} param The session model to use. */
-  view({ attrs: { model } }) {
+  view({ attrs: { model, onDeselect } }) {
     return m("article", [
+      m("button", { onclick: () => onDeselect() }, "Zruck"),
       model.games.map((g) => m(GameView, { model: g })),
       model.currentGame !== null
         ? m(GameView, { model: model.currentGame })
