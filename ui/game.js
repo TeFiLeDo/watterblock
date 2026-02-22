@@ -8,7 +8,7 @@ export default class GameView {
   view({ attrs: { model } }) {
     let { ourPoints, theirPoints } = model.result;
 
-    return m("[", [
+    return m.fragment([
       (model.rounds.length !== 0)
         ? m("tbody", model.rounds.map(function(round) {
             return m("tr", [

@@ -20,13 +20,13 @@ export default class App {
     let db = WbDb.get();
 
     if (db.failed)
-      return m("[", [
+      return m.fragment([
         m("h1", "Watterblock kann nicht geöffnet werden"),
         m("p", "Die IndexedDB-Verbindung funktioniert gerade nicht"),
       ]);
 
     if (db.blocked)
-      return m("[", [
+      return m.fragment([
         m("h1", "Watterblock muss warten"),
         m("p",
           "Bitte schließe alle anderen Tabs, in denen der Watterblock " +
