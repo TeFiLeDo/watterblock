@@ -1,15 +1,12 @@
 "use strict";
 
-import { Team } from "../models/round.js";
-import Game from "../models/game.js";
-import RoundView from "./round.js";
+import { Team } from "/models/round.js";
+import Game from "/models/game.js";
 
 export default class GameView {
   /** @param {{ attrs: { model: Game } }} param The game model to use. */
   view({ attrs: { model } }) {
-    let { winner, points, ourPoints, theirPoints } = model.result;
-
-    let markers = "•".repeat(points);
+    let { ourPoints, theirPoints } = model.result;
 
     return m("[", [
       (model.rounds.length !== 0)

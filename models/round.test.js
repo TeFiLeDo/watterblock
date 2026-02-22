@@ -1,6 +1,6 @@
 "use strict";
 
-import { Round, Team } from "./round.js";
+import { Round, Team } from "/models/round.js";
 
 export default function() {
   QUnit.module("round", function() {

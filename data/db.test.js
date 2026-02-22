@@ -7,8 +7,7 @@
 // Setting up a second singleton instance for testing is possible, but would
 // not actually test the production variant.
 
-import { Round } from "../models/round.js";
-import WbDb from "./db.js";
+import WbDb from "/data/db.js";
 
 /** The instance used for the current test.
  *

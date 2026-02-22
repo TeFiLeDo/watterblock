@@ -1,9 +1,9 @@
 "use strict";
 
-import { Team } from "../models/round.js";
-import Session from "../models/session.js";
-import WbDb from "./db.js";
-import SessionRepo from "./session_repo.js";
+import { Team } from "/models/round.js";
+import Session from "/models/session.js";
+import WbDb from "/data/db.js";
+import SessionRepo from "/data/session_repo.js";
 
 /** The instance used for the current test.
  *

@@ -1,6 +1,6 @@
 "use strict";
 
-import { Round, Team } from "./round.js";
+import { Team } from "/models/round.js";
 
 /** A finished round of Watten. */
 export default class RoundResult {

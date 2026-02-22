@@ -1,17 +1,11 @@
 "use strict";
 
-import { Round, Team } from "../models/round.js";
+import { Round, Team } from "/models/round.js";
 
 export default class RoundView {
 
   /** @param { { attrs: { model: Round } } } param The round model to use. */
   view({ attrs: { model } }) {
-    let winner = "no koana";
-    if (model.winner === Team.We)
-      winner = "mia";
-    else if (model.winner === Team.They)
-      winner = "se";
-
     return m("section.current-round", [
       m("span.current-points", `${model.points}`),
       m("button.they-raise",

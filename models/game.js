@@ -1,7 +1,7 @@
 "use strict";
 
-import { Round, Team } from "./round.js";
-import RoundResult from "./round_result.js";
+import { Round, Team } from "/models/round.js";
+import RoundResult from "/models/round_result.js";
 
 /** A single game of watten.
  *

@@ -1,7 +1,7 @@
 "use strict";
 
-import Session from "../models/session.js";
-import WbDb from "./db.js";
+import Session from "/models/session.js";
+import WbDb from "/data/db.js";
 
 /** A transaction or known type that can be turned into a transaction.
  * @typedef {IDBTransaction|IDBDatabase|WbDb=} Transactable

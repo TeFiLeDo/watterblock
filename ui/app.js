@@ -1,7 +1,7 @@
 "use strict";
 
-import WbDb from "../data/db.js";
-import Shell from "./shell.js";
+import WbDb from "/data/db.js";
+import Shell from "/ui/shell.js";
 
 export default class App {
   #needsHandler = true;

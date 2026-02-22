@@ -1,8 +1,8 @@
 "use strict";
 
-import Session from "../models/session.js";
-import GameView from "./game.js";
-import RoundView from "./round.js";
+import Session from "/models/session.js";
+import GameView from "/ui/game.js";
+import RoundView from "/ui/round.js";
 
 export default class SessionView {
   /** @param {{ attrs: { model: Session } }} param The session model to use. */

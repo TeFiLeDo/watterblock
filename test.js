@@ -1,12 +1,12 @@
 "use strict";
 
-import round from "./models/round.test.js";
-import roundResult from "./models/round_result.test.js";
-import game from "./models/game.test.js";
-import session from "./models/session.test.js";
+import round from "/models/round.test.js";
+import roundResult from "/models/round_result.test.js";
+import game from "/models/game.test.js";
+import session from "/models/session.test.js";
 
-import db from "./data/db.test.js";
-import session_repo from "./data/session_repo.test.js";
+import db from "/data/db.test.js";
+import session_repo from "/data/session_repo.test.js";
 
 QUnit.module("models", function() {
   round();

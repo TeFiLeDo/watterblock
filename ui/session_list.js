@@ -1,6 +1,6 @@
 "use strict";
 
-import Session from "../models/session.js";
+import Session from "/models/session.js";
 
 export default class SessionList {
   /** @param {{ attrs: { models: Session[] } }} param The sessions to show. */

@@ -1,9 +1,9 @@
 "use strict";
 
-import Session from "../models/session.js";
-import SessionRepo from "../data/session_repo.js";
-import SessionList from "./session_list.js";
-import SessionView from "./session.js";
+import Session from "/models/session.js";
+import SessionRepo from "/data/session_repo.js";
+import SessionList from "/ui/session_list.js";
+import SessionView from "/ui/session.js";
 
 export default class Shell {
   /** @type(?Session[]) */

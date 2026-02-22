@@ -1,7 +1,7 @@
 "use strict";
 
-import Game from "./game.js";
-import { Team } from "./round.js";
+import Game from "/models/game.js";
+import { Team } from "/models/round.js";
 
 /** A session of Watten.
  *

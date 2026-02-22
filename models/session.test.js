@@ -1,8 +1,8 @@
 "use strict";
 
-import { Round, Team } from "./round.js";
-import Game from "./game.js";
-import Session from "./session.js";
+import { Team } from "/models/round.js";
+import Game from "/models/game.js";
+import Session from "/models/session.js";
 
 export default function() {
   QUnit.module("session", function() {
