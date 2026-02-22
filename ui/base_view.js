@@ -5,7 +5,7 @@ import SessionRepo from "/data/session_repo.js";
 import SessionList from "/ui/session_list.js";
 import SessionView from "/ui/session.js";
 
-export default class Shell {
+export default class BaseView {
   /** @type(?Session[]) */
   #sessions = null;
   /** @type(?Session) */
