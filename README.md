@@ -28,18 +28,110 @@ following principles will guide its development.
    but only with feature checking, which I'll only do for them.
 5. **Extensive tests:** I don't want to spend a lot of time on bug hunting, therefore everything
    that can be tested automatically should be.
+6. **Good documentation:** I'll most certainly forget how some things work at some point. Thus it
+   is paramount to keep a good documentation, so I won't have to read through everything again.
 
 Structure
 ---------
 
 1. `index.html` is the main HTML file bootstraping everything.
 2. `style.css` defines how to present the notepad.
-3. `models/` contains the "business logic", i.e. classes representing the current state and its
+3. `index.js` is the JS file bootstraping the actual behaviour.
+4. `models/` contains the "business logic", i.e. classes representing the current state and its
    behaviour at runtime.
-4. `data/` contains components to store that state in persistent storage for later access.
-5. `ui/` contains UI components.
-6. `service-worker.js` is a ServiceWorker-Script, allowing for offline usage.
-7. `manifest.json` makes it possible to install the notepad as an app.
-8. `test.html` is a unit test runner, that runs the tests in `test.js`. That in turn loads tests
+5. `data/` contains components to store that state in persistent storage for later access.
+6. `ui/` contains UI components.
+   1. `ui/layout.js` is a layout component shared by all views, for a consistent shell.
+   2. `ui/views/` contains independent views, i.e. different "screens".
+   3. `ui/components/` contains individual components, which are parts of views, that can also be
+      reused.
+7. `service-worker.js` is a ServiceWorker-Script, allowing for offline usage.
+8. `manifest.json` makes it possible to install the notepad as an app.
+9. `test.html` is a unit test runner, that runs the tests in `test.js`. That in turn loads tests
    from various `*.test.js` files from across the project.
-9. `vendored/` contains copies of external dependencies, for direct use.
+10. `vendored/` contains copies of external dependencies, for direct use.
+
+Dependencies
+------------
+
+### QUnit
+
+**QUnit** is a JS unit testing framework. It was chosen because it is easy to use and can be run in
+the browser. It consists of `vendored/qunit-2.25.0.js` and `vendored/qunit-2.25.0.css`. This is
+it's license:
+
+    Copyright OpenJS Foundation and other contributors, https://openjsf.org/
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### Mithril
+
+**Mithril** is a JS single page framework. It was chosen because it is rather simple, easy to
+understand, and developed with the expectation of being used like this, not needing a build tool.
+It consists of `vendored/mithril-2.3.8.js`. This is it's license:
+
+    The MIT License (MIT)
+
+    Copyright (c) 2017 Leo Horie
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+### normalize.css
+
+**normalize.css** makes styles more consistent across browser, thus simplifying custom styling. It
+consists of `vendored/normalize-8.0.1.css`. This is it's license:
+
+    # The MIT License (MIT)
+
+    Copyright © Nicolas Gallagher and Jonathan Neal
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of
+    this software and associated documentation files (the "Software"), to deal in
+    the Software without restriction, including without limitation the rights to
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+    of the Software, and to permit persons to whom the Software is furnished to do
+    so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
