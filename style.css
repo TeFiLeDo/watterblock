@@ -7,6 +7,10 @@ body {
   height: 1px;
 }
 
+main {
+  display: contents;
+}
+
 .session-view {
   min-height: 100%;
   display: flex;
