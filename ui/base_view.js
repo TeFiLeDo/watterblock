@@ -6,39 +6,124 @@ import SessionList from "/ui/session_list.js";
 import SessionView from "/ui/session.js";
 
 export default class BaseView {
-  /** @type(?Session[]) */
-  #sessions = null;
-  /** @type(?Session) */
-  #currentSession = null;
+  #model = new BaseViewModel();
 
-  constructor() {
-    SessionRepo.getAll().then(ls => {
-      this.#sessions = ls;
-      m.redraw();
-    });
+  oninit() {
+    let id = m.route.param("session");
+    id = parseInt(id);
+    if (Number.isNaN(id))
+      id = null;
+
+    this.#model.current = id;
+    this.#model.loadAllSessions();
   }
 
   view() {
-    if (this.#currentSession !== null)
+    if (this.#model.current !== null)
       return m(SessionView, {
-        model: this.#currentSession,
-        onDeselect: () => this.#currentSession = null,
+        model: this.#model.current,
+        onDeselect: () => this.#model.current = null,
       });
 
-    if (this.#sessions !== null)
+    if (this.#model.sessions !== null)
       return m(SessionList, {
-        models: this.#sessions,
-        onSelect: async (key) => {
-          this.#currentSession = await SessionRepo.get(key) ?? null;
-        },
-        onNew: async () => {
-          let session = new Session();
-          await SessionRepo.put(session);
-          this.#currentSession = session;
-          this.#sessions.splice(0, 0, session);
-        }
+        models: this.#model.sessions,
+        onSelect: (session) => this.#model.current = session,
+        onNew: () => this.#model.newSession(),
       });
 
     return m("p", "Wart kurz, i lad grad die Spiele…");
+  }
+}
+
+class BaseViewModel {
+  #current = null;
+  #currentLoading = null;
+
+  get current() {
+    return this.#current;
+  }
+
+  set current(value) {
+    if (value instanceof Session) {
+      this.#current = value;
+      this.#currentLoading = null;
+      m.route.set("/", { session: value.id });
+
+    } else if (typeof value === "number") {
+      if (value === this.#current?.id || value === this.#currentLoading)
+        return;
+      this.#currentLoading = value;
+      m.route.set("/", { session: value });
+      SessionRepo
+        .get(value)
+        .then((s) => {
+          if (this.#currentLoading === s?.id)
+            this.#current = s;
+        })
+        .finally(() => {
+          if (this.#currentLoading === value)
+            this.#currentLoading = null;
+          m.redraw();
+        });
+
+    } else if (value === null) {
+      this.#current = null;
+      this.#currentLoading = null;
+      this.loadAllSessions();
+      m.route.set("/");
+
+    } else {
+      throw new TypeError("current session must be session or id or null");
+    }
+  }
+
+  get currentLoading() {
+    return this.#currentLoading !== null;
+  }
+
+  static #newSessionMarker = Symbol("new session loading");
+
+  newSession() {
+    if (this.#currentLoading === BaseViewModel.#newSessionMarker)
+      return;
+
+    this.#currentLoading = BaseViewModel.#newSessionMarker;
+
+    let session = new Session();
+    SessionRepo
+      .put(session)
+      .then(() => {
+        if (this.#currentLoading === BaseViewModel.#newSessionMarker) {
+          this.#current = session;
+          m.route.set("/", { session: session.id });
+        }
+      })
+      .finally(() => {
+        if (this.#currentLoading === BaseViewModel.#newSessionMarker)
+          this.#currentLoading = null;
+        m.redraw();
+      });
+  }
+
+  #sessions = null;
+  #sessionsLoading = false;
+
+  get sessions() {
+    return this.#sessions;
+  }
+
+  loadAllSessions() {
+    if (this.#sessionsLoading)
+      return;
+
+    this.#sessionsLoading = true;
+    SessionRepo
+      .getAll()
+      .then(s => this.#sessions = s)
+      .finally(() => {
+        this.#sessionsLoading = false;
+        m.redraw();
+      });
   }
 }

@@ -9,7 +9,7 @@ export default class SessionList {
       m("button", { onclick: () => onNew() }, "Neie Session"),
       m("ol", [
         models.map((s) => m("li", [
-          m("button", { onclick: () => onSelect(s.id) }, [
+          m("button", { onclick: () => onSelect(s) }, [
             m("p", s.ourTeam !== "" ? s.ourTeam : "Unbnannts Team"),
             m("p", s.theirTeam !== "" ? s.theirTeam : "Unbnannts Team"),
             m("p", "•".repeat(s.result.ourPoints)),
