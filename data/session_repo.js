@@ -68,6 +68,25 @@ export default class SessionRepo {
     SessionRepo.put(this, this[SessionRepo.#marker]);
   }
 
+  /** Set up the change handling mechanism for the provided object. Also turn it
+   * into a `Session` model, if it isn't one yet.
+   *
+   * @param {Session | any} value The session to set up.
+   * @param {IDBDatabase} db The database to update the session in.
+   *
+   * @returns {Session} The change-handling session.
+   */
+  static #setupChangeHandling(value, db) {
+    let session = (value instanceof Session) ? value : new Session(value);
+
+    if (session[SessionRepo.#marker] === undefined) {
+      session.addEventListener(Session.EVENT_CHANGE, SessionRepo.#handleChange);
+      session[SessionRepo.#marker] = db;
+    }
+
+    return session;
+  }
+
   /** Put a session into the repository.
    *
    * If the passed session has no `id` set, the newly stored ID will be
@@ -95,12 +114,8 @@ export default class SessionRepo {
     if (session.id === null)
       alt = alt.then((id) => session.id = id);
 
-    // add change listener t oobject.
-    alt.then(() => { if (session[SessionRepo.#marker] === undefined) {
-      session.addEventListener(
-        Session.EVENT_CHANGE, SessionRepo.#handleChange);
-      session[SessionRepo.#marker] = transaction.db;
-    }});
+    // add change listener to object.
+    alt.then(() => SessionRepo.#setupChangeHandling(session, transaction.db));
 
     // make sure alt is handled first
     return req.then(res => res);
@@ -120,10 +135,7 @@ export default class SessionRepo {
 
     let session = await requestToPromise(sessions.get(key));
     if (session !== undefined) {
-      session = new Session(session);
-      session.addEventListener(
-        Session.EVENT_CHANGE, SessionRepo.#handleChange);
-      session[SessionRepo.#marker] = transaction.db;
+      session = SessionRepo.#setupChangeHandling(session, transaction.db);
     }
     return session;
   }
@@ -139,11 +151,7 @@ export default class SessionRepo {
     let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
 
     sessions = await requestToPromise(sessions.getAll());
-    return sessions.map(function(session) {
-      let res = new Session(session);
-      res.addEventListener(Session.EVENT_CHANGE, SessionRepo.#handleChange);
-      res[SessionRepo.#marker] = transaction.db;
-      return res;
-    });
+    return sessions.map(
+      (session) => SessionRepo.#setupChangeHandling(session, transaction.db));
   }
 }
