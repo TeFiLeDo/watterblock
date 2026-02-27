@@ -158,5 +158,53 @@ export default function() {
     });
 
 
+    QUnit.test("reinserting all sessions", async function(assert) {
+      // old structurized session (see v1 tests of session model)
+      const old = {
+        goal: 3,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+      };
+
+      // prepare db
+      inst = WbDb.get(true);
+      await waitForOpen(inst);
+
+      // manually insert old session (deliberately impossible with SessionRepo)
+      let trans = inst.db.transaction([WbDb.OS_SESSIONS], "readwrite");
+      let os = trans.objectStore(WbDb.OS_SESSIONS);
+      await new Promise((resolve) => os.put(old).onsuccess = resolve);
+
+      // now update the old seession
+      SessionRepo.reinsertAll(inst);
+
+      // give the reinsertion a chance to execute
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // check that the session has been updated
+      let sessions = (await new Promise(function (resolve) {
+        inst
+          .db
+          .transaction([WbDb.OS_SESSIONS], "readonly")
+          .objectStore(WbDb.OS_SESSIONS)
+          .getAll()
+          .onsuccess = resolve;
+      })).target.result;
+      assert.strictEqual(sessions.length, 1, "exactly one session present");
+      assert.deepEqual(
+        sessions[0].updated,
+        new Date("2026-02-26T22:00:00"),
+        "session update date is fallback");
+
+      // Note that the inserted session data is older than the `updated` field
+      // in the model class. Thus it being present proves that the session has
+      // indeed been parsed and reinserted.
+      //
+      // Also note that the exact parsing and default value adding is already
+      // checked in the model tests, thus it would be a duplicate to test that
+      // here too.
+    });
   });
 }

@@ -154,4 +154,24 @@ export default class SessionRepo {
     return sessions.map(
       (session) => SessionRepo.#setupChangeHandling(session, transaction.db));
   }
+
+  /** Load all sessions, parse them, then reinsert them.
+   *
+   * Does not set the intermediate objects up for change handling.
+   *
+   * @param {Transactable=} transaction A transaction to use.
+   */
+  static reinsertAll(transaction) {
+    let trans = toTransaction(transaction, [WbDb.OS_SESSIONS], "readwrite");
+    let os = trans.objectStore(WbDb.OS_SESSIONS);
+
+    let cursor = os.openCursor();
+    cursor.addEventListener("success", function(ev) {
+      let cur = ev.target.result;
+      if (cur !== null) {
+        os.put((new Session(cur.value)).toStruct());
+        cur.continue();
+      }
+    });
+  }
 }
