@@ -119,7 +119,7 @@ class BaseViewModel {
 
     this.#sessionsLoading = true;
     SessionRepo
-      .getAll()
+      .getAllFromNewest()
       .then(s => this.#sessions = s)
       .finally(() => {
         this.#sessionsLoading = false;
