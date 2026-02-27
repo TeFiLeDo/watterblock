@@ -30,7 +30,8 @@ export default class Session extends EventTarget {
 
   /** Set the ID of this session.
    *
-   * Note that an existing ID cannot be overwritten.
+   * Note that an existing ID cannot be overwritten. Setting an ID also doesn't
+   * trigger the `Session.EVENT_CHANGE` event.
    */
   set id(value) {
     if (this.#id !== null)
