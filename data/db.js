@@ -1,5 +1,7 @@
 "use strict";
 
+import SessionRepo from "/data/session_repo.js";
+
 /** A wrapper around an IndexedDB.
  *
  * This wrapper handles the following tasks:
@@ -19,10 +21,12 @@ export default class WbDb extends EventTarget {
   /** The name of the test `IDBDatabase`. */
   static get DB_NAME_TEST() { return "test-watterblock"; }
   /** The currently correct DB version. */
-  static get DB_VERSION() { return 1; }
+  static get DB_VERSION() { return 2; }
 
   /** The name of the `IDBObjectStore` for `Session`s. */
   static get OS_SESSIONS() { return "sessions"; }
+  /** The name of the `IDBIndex` for the `Session` update time. */
+  static get IDX_SESSIONS_UPDATED() { return "sessions-updated"; }
 
   /** Whether the WbDb constructor may be called. */
   static #mayConstruct = false;
@@ -140,6 +144,11 @@ export default class WbDb extends EventTarget {
 
     if (old < 1 && now >= 1)
       this.#version1(db, trans);
+    if (old < 2 && now >= 2)
+      this.#version2(db, trans);
+
+    // update existing data to be visible in indexes
+    SessionRepo.reinsertAll(trans);
   }
 
   /** Handle the `error` event from opening the DB.
@@ -171,5 +180,15 @@ export default class WbDb extends EventTarget {
       keyPath: "id",
       autoIncrement: true,
     });
+  }
+
+  /** Do the migration for db version 2.
+   * @param {IDBDatabase} db The db to upgrade.
+   * @param {IDBTransaction} trans The db transaction.
+   */
+  #version2(db, trans) {
+    trans
+      .objectStore(WbDb.OS_SESSIONS)
+      .createIndex(WbDb.IDX_SESSIONS_UPDATED, "updated");
   }
 }
