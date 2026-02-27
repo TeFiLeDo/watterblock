@@ -36,6 +36,30 @@ export default class Session extends EventTarget {
     if (this.#id !== null)
       throw new Error("the ID cannot be changed if it has been set");
     this.#id = value;
+  }
+
+  /** The time when this session was initially created. */
+  #created = new Date();
+
+  /** Get the time when this session was initially created. */
+  get created() {
+    return this.#created;
+  }
+
+  /** The time when this session was last updated. */
+  #updated = new Date();
+
+  /** Get the time when this session was last updated. */
+  get updated() {
+    return this.#updated;
+  }
+
+  /** Mark this session as changed.
+   *
+   * Triggers the `Session.EVENT_CHANGE` event and sets the update time.
+   */
+  #changed() {
+    this.#updated = new Date();
     this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
   }
 
@@ -57,7 +81,7 @@ export default class Session extends EventTarget {
     if (!Number.isInteger(value) || value < 1)
       throw new RangeError("goal must be integer >= 1");
     this.#goal = value;
-    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+    this.#changed();
   }
 
   /** The name or members of the "we" team. */
@@ -71,7 +95,7 @@ export default class Session extends EventTarget {
   /** Set the name or members of the "we" team. */
   set ourTeam(value) {
     this.#ourTeam = value;
-    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+    this.#changed();
   }
 
   /** The name or members of the "they" team. */
@@ -85,7 +109,7 @@ export default class Session extends EventTarget {
   /** Set the name or members of the "they" team. */
   set theirTeam(value) {
     this.#theirTeam = value;
-    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+    this.#changed();
   }
 
   /** The finished games.
@@ -117,7 +141,7 @@ export default class Session extends EventTarget {
       this.#currentGame = new Game(this.goal);
       this.#currentGame.addEventListener(
         Game.EVENT_CHANGE, this.#boundHandleGameChange);
-      this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+      this.#changed();
     }
   }
 
@@ -149,7 +173,7 @@ export default class Session extends EventTarget {
       this.#games.push(this.#currentGame);
       this.#currentGame = null;
     }
-    this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
+    this.#changed();
   }
 
   /** #handleGameChange, but bound to this instance. */
@@ -186,6 +210,8 @@ export default class Session extends EventTarget {
       games: this.#games.map((g) => g.toStruct()),
       currentGame:
         this.#currentGame !== null ? this.#currentGame.toStruct() : null,
+      created: this.#created,
+      updated: this.#updated,
     };
 
     if (this.#id !== null)
@@ -216,7 +242,7 @@ export default class Session extends EventTarget {
 
     if (typeof value.ourTeam !== "string")
       throw new TypeError("struct must contain ourTeam as string");
-    this.ourTeam = value.ourTeam;
+    this.#ourTeam = value.ourTeam;
 
     if (typeof value.theirTeam !== "string")
       throw new TypeError("struct must contain theirTeam as string");
@@ -240,5 +266,21 @@ export default class Session extends EventTarget {
       if (this.#currentGame.result.winner !== null)
         throw new Error("currentGame in struct must not be finished");
     }
+
+    if ("created" in value) {
+      if (!(value.created instanceof Date))
+        throw new TypeError(
+          "if struct contains creation time, it must be a date");
+      this.#created = value.created;
+    } else
+      this.#created = new Date("2026-02-26T22:00:00");
+
+    if ("updated" in value) {
+      if (!(value.updated instanceof Date))
+        throw new TypeError(
+          "if struct contains update time, it must be a date");
+      this.#updated = value.updated;
+    } else
+      this.#updated = new Date("2026-02-26T22:00:00");
   }
 }

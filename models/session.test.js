@@ -7,6 +7,7 @@ import Session from "/models/session.js";
 export default function() {
   QUnit.module("session", function() {
     QUnit.test("initial state", function(assert) {
+      let now = new Date();
       let session = new Session();
       assert.strictEqual(session.goal, 11, "initial goal");
       assert.strictEqual(session.games.length, 0, "no finished games");
@@ -17,6 +18,9 @@ export default function() {
         "initially no points");
       assert.strictEqual(session.ourTeam, "", "our team name");
       assert.strictEqual(session.theirTeam, "", "their team name");
+      assert.true(session.created >= now, "was created after start");
+      assert.true(
+        session.created >= session.updated, "updated at or after creation");
     });
 
     QUnit.test("invalid constructor", function(assert) {
@@ -49,6 +53,7 @@ export default function() {
         "small goal");
 
       assert.verifySteps(["event"], "event happened once");
+      assert.true(session.updated >= session.created, "was updated");
     });
 
     QUnit.test("start game", function(assert) {
@@ -131,6 +136,7 @@ export default function() {
       });
       session.anotherGame();
       assert.verifySteps(["event"], "event was triggered");
+      assert.true(session.updated >= session.created, "was updated");
     });
 
     QUnit.test("game change triggers change event", function(assert) {
@@ -141,6 +147,7 @@ export default function() {
       });
       session.currentGame.currentRound.raise(Team.They);
       assert.verifySteps(["event"], "event was triggered");
+      assert.true(session.updated >= session.created, "was updated");
     });
 
     QUnit.test("setting ID", function(assert){
@@ -152,7 +159,7 @@ export default function() {
 
       session.id = 18;
       assert.strictEqual(session.id, 18, "correct id");
-      assert.verifySteps(["event"], "event happened");
+      assert.verifySteps([], "no event happened");
     });
 
     QUnit.test("setting our team", function(assert){
@@ -165,6 +172,7 @@ export default function() {
       session.ourTeam = "This is us!";
       assert.strictEqual(session.ourTeam, "This is us!", "correct ourTeam");
       assert.verifySteps(["event"], "event happened");
+      assert.true(session.updated >= session.created, "was updated");
     });
 
     QUnit.test("setting their team", function(assert){
@@ -178,6 +186,7 @@ export default function() {
       assert.strictEqual(
         session.theirTeam, "This is them!", "correct theirTeam");
       assert.verifySteps(["event"], "event happened");
+      assert.true(session.updated >= session.created, "was updated");
     });
 
     QUnit.test("toStruct - new session", function(assert) {
@@ -190,6 +199,8 @@ export default function() {
         theirTeam: "",
         games: [],
         currentGame: null,
+        created: session.created,
+        updated: session.updated,
       };
 
       assert.deepEqual(struct, expected, "successfull structurizing");
@@ -219,7 +230,9 @@ export default function() {
         ourTeam: "This is us!",
         theirTeam: "This is them!",
         games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct()
+        currentGame: unfinished.toStruct(),
+        created: session.created,
+        updated: session.updated,
       };
 
       assert.deepEqual(struct, expected, "successfull structurizing");
@@ -242,6 +255,8 @@ export default function() {
       assert.strictEqual(
         copy.currentGame, orig.currentGame, "no current games");
       assert.deepEqual(copy.result, orig.result, "results match");
+      assert.strictEqual(copy.created, orig.created, "same creation time");
+      assert.strictEqual(copy.updated, orig.updated, "same update time");
 
       orig.anotherGame();
       orig.id = 15;
@@ -263,6 +278,8 @@ export default function() {
         orig.currentGame.toStruct(),
         "current game");
       assert.deepEqual(copy.result, orig.result, "results match");
+      assert.strictEqual(copy.created, orig.created, "same creation time");
+      assert.strictEqual(copy.updated, orig.updated, "same update time");
     });
 
     QUnit.test("fromStruct - invalid", function(assert) {
@@ -347,6 +364,17 @@ export default function() {
         new Error("currentGame in struct must not be finished"));
       struct.currentGame = unfinished.toStruct();
 
+      struct.created = "2026-02-26T22:00:00";
+      doIt(
+        "string created",
+        new TypeError("if struct contains creation time, it must be a date"));
+      struct.created = new Date(struct.created);
+      struct.updated = "2026-02-26T22:00:00";
+      doIt(
+        "string updated",
+        new TypeError("if struct contains update time, it must be a date"));
+      struct.updated = new Date(struct.updated);
+
       new Session(struct);
 
       struct.games = [];
@@ -386,6 +414,8 @@ export default function() {
         theirTeam: "",
         games: [],
         currentGame: null,
+        created: new Date("2026-02-26T22:00:00"),
+        updated: new Date("2026-02-26T22:00:00"),
       };
       assert.deepEqual(session.toStruct(), expected, "reexport matches");
     });
@@ -412,6 +442,8 @@ export default function() {
         theirTeam: "This is them!",
         games: [ finished.toStruct() ],
         currentGame: unfinished.toStruct(),
+        created: new Date("2026-02-26T22:00:00"),
+        updated: new Date("2026-02-26T22:00:00"),
       };
       assert.deepEqual(session.toStruct(), expected, "reexport matches");
     });
@@ -434,6 +466,8 @@ export default function() {
         theirTeam: "",
         games: [],
         currentGame: null,
+        created: new Date("2026-02-26T22:00:00"),
+        updated: new Date("2026-02-26T22:00:00"),
       };
       assert.deepEqual(session.toStruct(), expected, "reexport matches");
     });
@@ -462,6 +496,66 @@ export default function() {
         theirTeam: "This is them!",
         games: [ finished.toStruct() ],
         currentGame: unfinished.toStruct(),
+        created: new Date("2026-02-26T22:00:00"),
+        updated: new Date("2026-02-26T22:00:00"),
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v3 - new session", function(assert) {
+      let struct = {
+        id: 23,
+        goal: 3,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+        created: new Date("2026-02-26T20:05:00"),
+        updated: new Date("2026-02-26T20:05:00"),
+      };
+      let session = new Session(struct);
+
+      let expected = {
+        id: 23,
+        goal: 3,
+        ourTeam: "",
+        theirTeam: "",
+        games: [],
+        currentGame: null,
+        created: new Date("2026-02-26T20:05:00"),
+        updated: new Date("2026-02-26T20:05:00"),
+      };
+      assert.deepEqual(session.toStruct(), expected, "reexport matches");
+    });
+
+    QUnit.test("fromStruct - v3 - finished & unfinished", function(assert) {
+      let finished = new Game(3);
+      finished.currentRound.raise(Team.We);
+      finished.currentRound.winner = Team.They;
+      let unfinished = new Game(3);
+      unfinished.currentRound.winner = Team.We;
+
+      let struct = {
+        id: 17,
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+        created: new Date("2026-02-26T20:05:00"),
+        updated: new Date("2026-02-26T20:05:00"),
+      };
+      let session = new Session(struct);
+
+      let expected = {
+        id: 17,
+        goal: 3,
+        ourTeam: "This is us!",
+        theirTeam: "This is them!",
+        games: [ finished.toStruct() ],
+        currentGame: unfinished.toStruct(),
+        created: new Date("2026-02-26T20:05:00"),
+        updated: new Date("2026-02-26T20:05:00"),
       };
       assert.deepEqual(session.toStruct(), expected, "reexport matches");
     });
