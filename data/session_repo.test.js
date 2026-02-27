@@ -177,6 +177,18 @@ export default function() {
       let os = trans.objectStore(WbDb.OS_SESSIONS);
       await new Promise((resolve) => os.put(old).onsuccess = resolve);
 
+      // check that the session has not yet been updated
+      let sessions = (await new Promise(function (resolve) {
+        inst
+          .db
+          .transaction([WbDb.OS_SESSIONS], "readonly")
+          .objectStore(WbDb.OS_SESSIONS)
+          .index(WbDb.IDX_SESSIONS_UPDATED)
+          .getAll()
+          .onsuccess = resolve;
+      })).target.result;
+      assert.strictEqual(sessions.length, 0, "no session in update index");
+
       // now update the old seession
       SessionRepo.reinsertAll(inst);
 
@@ -184,23 +196,20 @@ export default function() {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // check that the session has been updated
-      let sessions = (await new Promise(function (resolve) {
+      sessions = (await new Promise(function (resolve) {
         inst
           .db
           .transaction([WbDb.OS_SESSIONS], "readonly")
           .objectStore(WbDb.OS_SESSIONS)
+          .index(WbDb.IDX_SESSIONS_UPDATED)
           .getAll()
           .onsuccess = resolve;
       })).target.result;
-      assert.strictEqual(sessions.length, 1, "exactly one session present");
-      assert.deepEqual(
-        sessions[0].updated,
-        new Date("2026-02-26T22:00:00"),
-        "session update date is fallback");
+      assert.strictEqual(sessions.length, 1, "session found by update index");
 
       // Note that the inserted session data is older than the `updated` field
-      // in the model class. Thus it being present proves that the session has
-      // indeed been parsed and reinserted.
+      // in the model class. Thus it being present in the index proves that the
+      // session has indeed been parsed and reinserted.
       //
       // Also note that the exact parsing and default value adding is already
       // checked in the model tests, thus it would be a duplicate to test that
