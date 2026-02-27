@@ -134,14 +134,19 @@ export default function() {
       await waitForOpen(inst);
 
       let session = new Session();
+      let tsInitial = session.updated;
       let id = await SessionRepo.put(session, inst);
       assert.strictEqual(session.id, id, "session id has been updated");
+
+      // ensure the timestamp is no longer the same
+      await new Promise((resolve) => setTimeout(resolve, 1));
 
       session.ourTeam = "This is us!";
       session.theirTeam = "This is them!";
       session.goal = 2;
       session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
+      assert.true(session.updated > tsInitial, "updated timestamp is higher");
 
       // give the change events a chance to execute
       await new Promise((resolve) => setTimeout(resolve, 10));
