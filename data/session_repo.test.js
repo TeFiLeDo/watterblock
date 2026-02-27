@@ -157,6 +157,55 @@ export default function() {
         sessions[0].toStruct(), session.toStruct(), "sessions match");
     });
 
+    QUnit.test("get sessions by age", async function(assert) {
+      inst = WbDb.get(true);
+      let req = waitForOpen(inst);
+
+      let first = new Session();
+      first.ourTeam = "Team A";
+      first.theirTeam = "Team 1";
+      first.goal = 2;
+      first.anotherGame();
+      first.currentGame.currentRound.winner = Team.We;
+      first.anotherGame();
+
+      // ensure the timestamp is no longer the same
+      await new Promise((resolve) => setTimeout(resolve, 1));
+
+      let second = new Session();
+      second.ourTeam = "Team B";
+      second.theirTeam = "Team 2";
+      second.goal = 3;
+      second.anotherGame();
+      second.currentGame.currentRound.raise(Team.We);
+      second.currentGame.currentRound.winner = Team.They;
+
+      await req;
+      await Promise.all([
+        SessionRepo.put(first, inst),
+        SessionRepo.put(second, inst),
+        new Promise((resolve) => setTimeout(resolve, 1)),
+      ]);
+
+      // check after initial storage
+      let sessions = await SessionRepo.getAllFromNewest(inst);
+      assert.strictEqual(sessions.length, 2, "exactly two sessions stored");
+      assert.strictEqual(sessions[0].id, second.id, "second is newer");
+      assert.strictEqual(sessions[1].id, first.id, "first is older");
+
+      // change older session
+      first.currentGame.currentRound.winner = Team.They;
+      first.anotherGame();
+
+      // give the change events a chance to execute
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // check whether order has changed
+      sessions = await SessionRepo.getAllFromNewest(inst);
+      assert.strictEqual(sessions.length, 2, "exactly two sessions stored");
+      assert.strictEqual(sessions[0].id, first.id, "first is newer");
+      assert.strictEqual(sessions[1].id, second.id, "second is older");
+    });
 
     QUnit.test("reinserting all sessions", async function(assert) {
       // old structurized session (see v1 tests of session model)

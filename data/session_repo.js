@@ -155,6 +155,24 @@ export default class SessionRepo {
       (session) => SessionRepo.#setupChangeHandling(session, transaction.db));
   }
 
+  /** Get all sessions in the repository, most recently updated first.
+   *
+   * @param {Transactable=} transaction A transaction to use.
+   *
+   * @returns {Promise<Session[]>}
+   * A promise containing the sorted stored sessions.
+   */
+  static async getAllFromNewest(transaction) {
+    transaction = toTransaction(transaction, [WbDb.OS_SESSIONS], "readonly");
+    let sessions = transaction
+      .objectStore(WbDb.OS_SESSIONS)
+      .index(WbDb.IDX_SESSIONS_UPDATED);
+
+    sessions = await requestToPromise(sessions.getAll());
+    return sessions.reverse().map(
+      (session) => SessionRepo.#setupChangeHandling(session, transaction.db));
+  }
+
   /** Load all sessions, parse them, then reinsert them.
    *
    * Does not set the intermediate objects up for change handling.
