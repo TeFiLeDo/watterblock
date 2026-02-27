@@ -22,10 +22,11 @@ let inst = null;
  *
  * @param {WbDb=} instance The instance to wait on.
  */
-function waitForChange(instance) {
+function waitForOpen(instance) {
   return new Promise(function(resolve) {
     (instance ?? inst).addEventListener(WbDb.EVENT_CHANGE, function() {
-      resolve();
+      if ((instance ?? inst).open)
+        resolve();
     });
   });
 }
@@ -59,14 +60,14 @@ export default function() {
 
     QUnit.test("initially no sessions", async function(assert) {
       inst = WbDb.get(true);
-      await waitForChange(inst);
+      await waitForOpen(inst);
       let sessions = await SessionRepo.getAll(inst);
       assert.strictEqual(sessions.length, 0, "no sessions");
     });
 
     QUnit.test("store single session", async function(assert) {
       inst = WbDb.get(true);
-      let req = waitForChange(inst);
+      let req = waitForOpen(inst);
 
       let session = new Session();
       session.ourTeam = "This is us!";
@@ -88,7 +89,7 @@ export default function() {
 
     QUnit.test("store two sessions", async function(assert) {
       inst = WbDb.get(true);
-      let req =  waitForChange(inst);
+      let req = waitForOpen(inst);
 
       let first = new Session();
       first.ourTeam = "Team A";
@@ -130,7 +131,7 @@ export default function() {
 
     QUnit.test("new session reacts to changes", async function(assert) {
       inst = WbDb.get(true);
-      await waitForChange(inst);
+      await waitForOpen(inst);
 
       let session = new Session();
       let id = await SessionRepo.put(session, inst);

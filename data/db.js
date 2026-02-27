@@ -80,6 +80,8 @@ export default class WbDb extends EventTarget {
   #blocked = false;
   /** Whether opening the DB has failed. */
   #failed = false;
+  /** Whether the DB is currently being upgraded. */
+  #upgrading = false;
 
   /** Get the actual database. */
   get db() {
@@ -109,6 +111,11 @@ export default class WbDb extends EventTarget {
     return this.#failed;
   }
 
+  /** Check whether the database is currently being upgraded. */
+  get upgrading() {
+    return this.#upgrading;
+  }
+
   /** Handle the `blocked` event for opening the DB.
    * @param {IDBVersionChangeEvent} event The actual event.
    */
@@ -121,6 +128,10 @@ export default class WbDb extends EventTarget {
    * @param {IDBVersionChangeEvent} event The actual event.
    */
   #handleUpgrade(event) {
+    this.#blocked = false;
+    this.#upgrading = true;
+    this.dispatchEvent(new CustomEvent(WbDb.EVENT_CHANGE));
+
     let {
       oldVersion: old,
       newVersion: now,
@@ -136,6 +147,8 @@ export default class WbDb extends EventTarget {
    */
   #handleError(event) {
     this.#failed = true;
+    this.#blocked = false;
+    this.#upgrading = false;
     this.dispatchEvent(new CustomEvent(WbDb.EVENT_CHANGE));
   }
 
@@ -144,6 +157,7 @@ export default class WbDb extends EventTarget {
    */
   #handleSuccess(event) {
     this.#blocked = false;
+    this.#upgrading = false;
     this.#db = event.target.result;
     this.dispatchEvent(new CustomEvent(WbDb.EVENT_CHANGE));
   }

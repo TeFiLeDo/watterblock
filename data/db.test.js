@@ -25,11 +25,13 @@ let inst = null;
  * Uses the `inst` global variable if no `instance` parameter is passed.
  *
  * @param {WbDb=} instance The instance to wait on.
+ * @param {boolean=} anyChange Whether any change is enough (default only open).
  */
-function waitForChange(instance) {
+function waitForChange(instance, anyChange) {
   return new Promise(function(resolve) {
     (instance ?? inst).addEventListener(WbDb.EVENT_CHANGE, function() {
-      resolve();
+      if (anyChange === true || (instance ?? inst).open)
+        resolve();
     });
   });
 }
@@ -99,7 +101,7 @@ export default function() {
       assert.strictEqual(first.db.version, 1, "first instance is version 1");
 
       inst = WbDb.get(true, 2);
-      await waitForChange();
+      await waitForChange(inst, true);
       assert.true(inst.blocked, "second instance blocked");
       assert.false(inst.open, "second instance not open");
       assert.false(inst.failed, "second instance not failed");
@@ -120,9 +122,11 @@ export default function() {
       first.db.close();
 
       let second = WbDb.get(true, 1)
-      await waitForChange(second);
-      if (second.blocked)
-        await waitForChange(second);
+      await waitForChange(second, true);
+      if (second.blocked) {
+        await waitForChange(second, true);
+        assert.true(false, "opening of old db is never blocked");
+      }
 
       assert.false(second.blocked, "second instance not blocked");
       assert.false(second.open, "second instance not open");
