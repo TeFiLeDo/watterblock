@@ -141,7 +141,6 @@ export default function() {
       session.goal = 2;
       session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
-      console.log("too late");
 
       // give the change events a chance to execute
       await new Promise((resolve) => setTimeout(resolve, 10));
