@@ -133,44 +133,51 @@ export default function() {
       assert.true(second.failed, "second instance failed");
     });
 
-    QUnit.test("sessions are reinserted after upgrade", async function(assert) {
-      let first = WbDb.get(true, 1);
-      await waitForChange(first);
-      first
-        .db
-        .transaction([WbDb.OS_SESSIONS], "readwrite")
-        .objectStore(WbDb.OS_SESSIONS)
-        .put({
-          goal: 3,
-          ourTeam: "",
-          theirTeam: "",
-          games: [],
-          currentGame: null,
-        });
-      first.db.close();
-
-      inst = WbDb.get(true, 2);
-      await waitForChange();
-
-      let sessions = (await new Promise(function (resolve) {
-        inst
+    QUnit.test.each(
+      "sessions are reinserted after upgrade",
+      [{ before: 1, after: 2, reinsert: true }],
+      async function(assert, input) {
+        let first = WbDb.get(true, input.before);
+        await waitForChange(first);
+        first
           .db
-          .transaction([WbDb.OS_SESSIONS], "readonly")
+          .transaction([WbDb.OS_SESSIONS], "readwrite")
           .objectStore(WbDb.OS_SESSIONS)
-          .index(WbDb.IDX_SESSIONS_UPDATED)
-          .getAll()
-          .onsuccess = resolve;
-      })).target.result;
-      assert.strictEqual(sessions.length, 1, "session found by update index");
+          .put({
+            goal: 3,
+            ourTeam: "",
+            theirTeam: "",
+            games: [],
+            currentGame: null,
+          });
+        first.db.close();
 
-      // Note that the inserted session data is older than the `updated` field
-      // in the model class. Thus it being present in the index proves that
-      // the session has indeed been parsed and reinserted.
-      //
-      // Also note that the exact parsing and default value adding is already
-      // checked in the model tests, thus it would be a duplicate to test that
-      // here too.
-    });
+        inst = WbDb.get(true, input.after);
+        await waitForChange();
+        let sessions = (await new Promise(function (resolve) {
+          inst
+            .db
+            .transaction([WbDb.OS_SESSIONS], "readonly")
+            .objectStore(WbDb.OS_SESSIONS)
+            .index(WbDb.IDX_SESSIONS_UPDATED)
+            .getAll()
+            .onsuccess = resolve;
+        })).target.result;
+
+        if (input.reinsert)
+          assert.strictEqual(sessions.length, 1, "session found via index");
+        else
+          assert.strictEqual(sessions.length, 0, "session not in index");
+
+        // Note that the inserted session data is older than the `updated` field
+        // in the model class. Thus it being present in the index proves that
+        // the session has indeed been parsed and reinserted.
+        //
+        // Also note that the exact parsing and default value adding is already
+        // checked in the model tests, thus it would be a duplicate to test that
+        // here too.
+      }
+    );
 
     QUnit.test("schema version 1", async function(assert) {
       inst = WbDb.get(true, 1);

@@ -142,13 +142,18 @@ export default class WbDb extends EventTarget {
       target: { result: db, transaction: trans },
     } = event;
 
+    let reinsertAll = false;
+
     if (old < 1 && now >= 1)
       this.#version1(db, trans);
-    if (old < 2 && now >= 2)
+    if (old < 2 && now >= 2) {
       this.#version2(db, trans);
+      reinsertAll = true;
+    }
 
     // update existing data to be visible in indexes
-    SessionRepo.reinsertAll(trans);
+    if (reinsertAll)
+      SessionRepo.reinsertAll(trans);
   }
 
   /** Handle the `error` event from opening the DB.
