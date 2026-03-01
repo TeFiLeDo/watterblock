@@ -4,7 +4,7 @@ import { Team } from "/models/round.js";
 import RoundResult from "/models/round_result.js";
 
 export default function() {
-  QUnit.module("RoundResult", function() {
+  QUnit.module("round_result", function() {
     QUnit.test("regular construction", function(assert) {
       let rr = new RoundResult(2, Team.We);
       assert.strictEqual(rr.points, 2, "correct points");
