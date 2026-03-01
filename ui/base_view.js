@@ -39,9 +39,18 @@ class BaseViewModel {
     return this.#current;
   }
 
+  #setCurrent(value) {
+    if (this.#current !== null)
+      this.#current.removeEventListener(
+        Session.EVENT_CHANGE, this.#handleCurrentUpdate);
+    if (value !== null)
+      value.addEventListener(Session.EVENT_CHANGE, this.#handleCurrentUpdate);
+    this.#current = value;
+  }
+
   set current(value) {
     if (value instanceof Session) {
-      this.#current = value;
+      this.#setCurrent(value);
       this.#currentLoading = null;
 
     } else if (typeof value === "number") {
@@ -52,7 +61,7 @@ class BaseViewModel {
         .get(value)
         .then((s) => {
           if (this.#currentLoading === s?.id)
-            this.#current = s;
+            this.#setCurrent(s);
         })
         .catch((e) => {
           console.error("failed to load session: ", e);
@@ -66,9 +75,8 @@ class BaseViewModel {
     } else if (value === null) {
       if (this.#current === null)
         return;
-      this.#current = null;
+      this.#setCurrent(null);
       this.#currentLoading = null;
-      this.loadAllSessions();
 
     } else {
       throw new TypeError("current session must be session or id or null");
@@ -92,7 +100,8 @@ class BaseViewModel {
       .put(session)
       .then(() => {
         if (this.#currentLoading === BaseViewModel.#newSessionMarker) {
-          this.#current = session;
+          this.#setCurrent(session);
+          this.#sessions.splice(0, 0, session);
           m.route.set("/", { session: session.id }, { replace: true });
         }
       })
@@ -132,4 +141,22 @@ class BaseViewModel {
         m.redraw();
       });
   }
+
+  #handleCurrentUpdate = (e) => {
+    if (this.#current !== e.target || this.#current === this.#sessions[0]) {
+      e.target.removeEventListener(
+        Session.EVENT_CHANGE, this.#handleCurrentUpdate);
+      return;
+    }
+
+    if (this.#current?.id === this.#sessions[0]?.id) {
+      e.target.removeEventListener(
+        Session.EVENT_CHANGE, this.#handleCurrentUpdate);
+      this.#sessions[0] = this.#current;
+      return;
+    }
+
+    this.loadAllSessions();
+  };
+
 }
