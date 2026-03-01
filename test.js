@@ -2,6 +2,7 @@
 
 import round from "/models/round.test.js";
 import roundResult from "/models/round_result.test.js";
+import gameRules from "/models/game_rules.test.js";
 import game from "/models/game.test.js";
 import session from "/models/session.test.js";
 
@@ -11,6 +12,7 @@ import session_repo from "/data/session_repo.test.js";
 QUnit.module("models", function() {
   round();
   roundResult();
+  gameRules();
   game();
   session();
 });
