@@ -6,12 +6,12 @@ import RoundView from "/ui/round.js";
 
 export default class SessionView {
   /** @param {{ attrs: { model: Session } }} param The session model to use. */
-  view({ attrs: { model, onDeselect } }) {
+  view({ attrs: { model } }) {
 
     let res = model.result;
 
     return m("article.session-view", [
-      m("button", { onclick: () => onDeselect() }, "Zruck"),
+      m(m.route.Link, { href: "/", selector: "button" }, "Zruck"),
       m("table", [
         m("thead", [
           m("tr", [

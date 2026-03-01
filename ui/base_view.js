@@ -9,27 +9,22 @@ export default class BaseView {
   #model = new BaseViewModel();
 
   oninit() {
-    let id = m.route.param("session");
-    id = parseInt(id);
-    if (Number.isNaN(id))
-      id = null;
-
-    this.#model.current = id;
     this.#model.loadAllSessions();
   }
 
-  view() {
+  view(vnode) {
+    if (vnode.attrs.newSession)
+      this.#model.newSession();
+    else
+      this.#model.current = vnode.attrs.session;
+
     if (this.#model.current !== null)
-      return m(SessionView, {
-        model: this.#model.current,
-        onDeselect: () => this.#model.current = null,
-      });
+      return m(SessionView, { model: this.#model.current });
 
     if (this.#model.sessions !== null)
       return m(SessionList, {
         models: this.#model.sessions,
         onSelect: (session) => this.#model.current = session,
-        onNew: () => this.#model.newSession(),
       });
 
     return m("p", "Wart kurz, i lad grad die Spiele…");
@@ -48,30 +43,32 @@ class BaseViewModel {
     if (value instanceof Session) {
       this.#current = value;
       this.#currentLoading = null;
-      m.route.set("/", { session: value.id });
 
     } else if (typeof value === "number") {
       if (value === this.#current?.id || value === this.#currentLoading)
         return;
       this.#currentLoading = value;
-      m.route.set("/", { session: value });
       SessionRepo
         .get(value)
         .then((s) => {
           if (this.#currentLoading === s?.id)
             this.#current = s;
         })
+        .catch((e) => {
+          console.error("failed to load session: ", e);
+        })
         .finally(() => {
+          m.redraw();
           if (this.#currentLoading === value)
             this.#currentLoading = null;
-          m.redraw();
         });
 
     } else if (value === null) {
+      if (this.#current === null)
+        return;
       this.#current = null;
       this.#currentLoading = null;
       this.loadAllSessions();
-      m.route.set("/");
 
     } else {
       throw new TypeError("current session must be session or id or null");
@@ -96,13 +93,22 @@ class BaseViewModel {
       .then(() => {
         if (this.#currentLoading === BaseViewModel.#newSessionMarker) {
           this.#current = session;
-          m.route.set("/", { session: session.id });
+          m.route.set("/", { session: session.id }, { replace: true });
         }
+      })
+      .catch((e) => {
+        console.error("failed to create new session: ", e);
+        if (this.#currentLoading === BaseViewModel.#newSessionMarker)
+          m.route.set(
+            "/",
+            { session: this.#current?.id ?? undefined },
+            { replace: true });
+        else
+          m.redraw();
       })
       .finally(() => {
         if (this.#currentLoading === BaseViewModel.#newSessionMarker)
           this.#currentLoading = null;
-        m.redraw();
       });
   }
 
