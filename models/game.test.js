@@ -3,13 +3,16 @@
 import { Round, Team } from "/models/round.js";
 import RoundResult from "/models/round_result.js";
 import Game from "/models/game.js";
+import GameRules, { RaisingRule } from "./game_rules.js";
 
 export default function() {
   QUnit.module("game", function() {
     QUnit.test("default construction", function(assert) {
       let game = new Game();
       assert.strictEqual(game.rounds.length, 0, "no past rounds");
-      assert.equal(game.goal, 11, "default goal");
+      assert.strictEqual(game.rules.goal, 11, "default goal");
+      assert.strictEqual(
+        game.rules.raising, RaisingRule.UnlessStricken, "default raising rule");
       assert.notStrictEqual(game.currentRound, null, "current round there");
       assert.deepEqual(
         game.result,
@@ -29,17 +32,14 @@ export default function() {
         new TypeError("unknown form of Game constructor"));
     });
 
-    QUnit.test("low goal", function(assert) {
-      assert.throws(
-        function() { new Game(0); },
-        new RangeError("goal must be at least 1"),
-        "goal must be 1 or higher");
-    });
-
-    QUnit.test("higher goal", function(assert) {
-      let game = new Game(15);
+    QUnit.test("with non-default rules", function(assert) {
+      let rules = new GameRules();
+      rules.goal = 15;
+      rules.raising = RaisingRule.UntilEnough;
+      let game = new Game(rules);
       assert.strictEqual(game.rounds.length, 0, "no past rounds");
-      assert.equal(game.goal, 15, "higher goal");
+      assert.equal(game.rules.goal, 15, "higher goal");
+      assert.equal(game.rules.raising, RaisingRule.UntilEnough, "raising rule");
       assert.notStrictEqual(game.currentRound, null, "current round there");
       assert.deepEqual(
         game.result,
@@ -201,7 +201,9 @@ export default function() {
     });
 
     QUnit.test("reverse tailor victory with low goal", function(assert) {
-      let game = new Game(3);
+      let rules = new GameRules();
+      rules.goal = 3;
+      let game = new Game(rules);
       game.currentRound.winner = Team.They; // 2
       game.currentRound.winner = Team.We; // 2
       game.currentRound.winner = Team.We; // 4
@@ -220,8 +222,39 @@ export default function() {
       );
     });
 
+    QUnit.test("raising rules effect - unless stricken", function(assert) {
+      let rules = new GameRules();
+      rules.goal = 3;
+      rules.raising = RaisingRule.UnlessStricken;
+
+      let game = new Game(rules);
+      game.currentRound.raise(Team.We);
+      game.currentRound.raise(Team.They);
+      assert.notStrictEqual(game.currentRound, null, "round still going");
+
+      game = new Game(rules);
+      game.currentRound.winner = Team.We;
+      game.currentRound.raise(Team.They);
+      assert.notStrictEqual(game.currentRound, null, "round still going");
+      game.currentRound.raise(Team.We);
+      assert.strictEqual(game.currentRound, null, "round ended");
+    });
+
+    QUnit.test("raising rules effect - until enough", function(assert) {
+      let rules = new GameRules();
+      rules.goal = 3;
+      rules.raising = RaisingRule.UntilEnough;
+
+      let game = new Game(rules);
+      game.currentRound.raise(Team.We);
+      game.currentRound.raise(Team.They);
+      assert.strictEqual(game.currentRound, null, "round ended");
+    });
+
     QUnit.test("round change triggers event", function(assert) {
-      let game = new Game(3);
+      let rules = new GameRules();
+      rules.goal = 3;
+      let game = new Game();
       game.addEventListener(Game.EVENT_CHANGE, function() {
         assert.step("event");
       });
@@ -239,36 +272,26 @@ export default function() {
       let struct = game.toStruct();
 
       let expected = {
-        goal: 11,
-        rounds: [
-          { points: 2, winner: Team.We },
-          { points: 3, winner: Team.They },
-        ],
-        currentRound: {
-          points: 3,
-          raisedLast: Team.We,
-          winner: null,
-          ourLimit: 9,
-          theirLimit: 8
-        },
+        rules: game.rules.toStruct(),
+        rounds: game.rounds.map((r) => r.toStruct()),
+        currentRound: game.currentRound.toStruct(),
       };
 
       assert.deepEqual(struct, expected, "successfull structurizing");
     });
 
     QUnit.test("toStruct - finished", function(assert) {
-      let game = new Game(3);
+      let rules = new GameRules();
+      rules.goal = 3;
+      let game = new Game(rules);
       game.currentRound.winner = Team.We;
       game.currentRound.raise(Team.They);
       game.currentRound.winner = Team.They;
       let struct = game.toStruct();
 
       let expected = {
-        goal: 3,
-        rounds: [
-          { points: 2, winner: Team.We },
-          { points: 3, winner: Team.They },
-        ],
+        rules: game.rules.toStruct(),
+        rounds: game.rounds.map((r) => r.toStruct()),
         currentRound: null,
       };
 
@@ -276,11 +299,13 @@ export default function() {
     });
 
     QUnit.test("fromStruct - current", function(assert) {
-      let orig = new Game(4);
+      let rules = new GameRules();
+      rules.goal = 4;
+      let orig = new Game(rules);
       orig.currentRound.raise(Team.We);
 
       let copy = new Game(orig.toStruct());
-      assert.strictEqual(copy.goal, orig.goal, "goals match");
+      assert.deepEqual(copy.rules, orig.rules, "rules match");
       assert.strictEqual(
         copy.currentRound.points,
         orig.currentRound.points,
@@ -306,18 +331,33 @@ export default function() {
         assert.throws(function() { new Game(struct); }, error, message);
       }
 
-      doIt("no goal", new TypeError("struct must contain goal as number"));
+      doIt(
+        "no goal", new TypeError("struct must contain either rules or goal"));
       struct.goal = "3";
-      doIt("string goal", new TypeError("struct must contain goal as number"));
+      doIt(
+        "string goal",
+        new TypeError("if struct contains goal, it must be a number"));
       struct.goal = Math.PI;
       doIt(
         "non-int goal",
-        new RangeError("struct must contain goal >= 1 as integer"));
+        new RangeError("if struct contains goal, must be integer >= 1"));
       struct.goal = 0;
       doIt(
         "small goal",
-        new RangeError("struct must contain goal >= 1 as integer"));
+        new RangeError("if struct contains goal, must be integer >= 1"));
       struct.goal = 3;
+
+      struct.rules = "";
+      doIt(
+        "rules and goal",
+        new TypeError("struct cannot contain both rules and goal"));
+      delete struct.goal;
+      doIt(
+        "string rules",
+        new TypeError("if struct contains rules, they must be an object"));
+      let rules = new GameRules();
+      rules.goal = 3;
+      struct.rules = rules;
 
       doIt("no rounds", new TypeError("struct must contain rounds"));
       struct.rounds = "nope";
@@ -352,59 +392,62 @@ export default function() {
       new Game(struct);
     });
 
-    // Data Import Tests
-    // =================
-    //
-    // The tests named "fromStruct - vXX - XXXXX" are there to ensure that
-    // future versions of the `Game` class still can correctly read in the
-    // structural data exported by earlier versions. This is needed to ensure
-    // that the data remains usable.
-    //
-    // These tests work by importing an old structural object, and then
-    // exporting a new one. The new one should match with how the current
-    // implementation would represent the same state.
-    //
-    // Therefore you should not modify the `struct` variables. Instead adjust
-    // the `expected` variable, to make sure the reexported data matches what
-    // is now correct.
+    // data for the version import tests
+    let round1 = new RoundResult(2, Team.We);
+    let round2 = new RoundResult(3, Team.They);
+    let current = new Round(2, 3);
+    let rules = new GameRules();
+    rules.goal = 3;
+    rules.raising = RaisingRule.UntilEnough;
 
-    QUnit.test("fromStruct - v1 - unfinished", function(assert) {
-      let past = new RoundResult(2, Team.We);
-      let current = new Round(2, 3);
-      current.raise(Team.They);
+    QUnit.test.each(
+      "fromStruct - unfinished",
+      {
+        v1: {
+          goal: 3,
+          rounds: [ round1.toStruct() ],
+          currentRound: current.toStruct(),
+        },
+        v2: {
+          rules: rules.toStruct(),
+          rounds: [ round1.toStruct() ],
+          currentRound: current.toStruct(),
+        },
+      },
+      function(assert, input) {
+        let game = new Game(input);
+        let expeted = {
+          rules: rules.toStruct(),
+          rounds: [ round1.toStruct() ],
+          currentRound: current.toStruct(),
+        };
+        assert.deepEqual(game.toStruct(), expeted, "reexport matches");
+      }
+    );
 
-      let struct = {
-        goal: 3,
-        rounds: [ past.toStruct() ],
-        currentRound: current.toStruct(),
-      };
-      let game = new Game(struct);
-
-      let expected = {
-        goal: 3,
-        rounds: [ past.toStruct() ],
-        currentRound: current.toStruct(),
-      };
-      assert.deepEqual(game.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v1 - finished", function(assert) {
-      let round1 = new RoundResult(2, Team.We);
-      let round2 = new RoundResult(3, Team.They);
-
-      let struct = {
-        goal: 3,
-        rounds: [ round1.toStruct(), round2.toStruct() ],
-        currentRound: null,
-      };
-      let game = new Game(struct);
-
-      let expected = {
-        goal: 3,
-        rounds: [ round1.toStruct(), round2.toStruct() ],
-        currentRound: null,
-      };
-      assert.deepEqual(game.toStruct(), expected, "reexport matches");
-    });
+    QUnit.test.each(
+      "fromStruct - finished",
+      {
+        v1: {
+          goal: 3,
+          rounds: [ round1.toStruct(), round2.toStruct() ],
+          currentRound: null,
+        },
+        v2: {
+          rules: rules.toStruct(),
+          rounds: [ round1.toStruct(), round2.toStruct() ],
+          currentRound: null,
+        },
+      },
+      function(assert, input) {
+        let game = new Game(input);
+        let expeted = {
+          rules: rules.toStruct(),
+          rounds: [ round1.toStruct(), round2.toStruct() ],
+          currentRound: null,
+        };
+        assert.deepEqual(game.toStruct(), expeted, "reexport matches");
+      }
+    );
   });
 }

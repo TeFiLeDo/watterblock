@@ -3,13 +3,16 @@
 import { Team } from "/models/round.js";
 import Game from "/models/game.js";
 import Session from "/models/session.js";
+import GameRules, { RaisingRule } from "/models/game_rules.js";
 
 export default function() {
   QUnit.module("session", function() {
     QUnit.test("initial state", function(assert) {
       let now = new Date();
       let session = new Session();
-      assert.strictEqual(session.goal, 11, "initial goal");
+      assert.strictEqual(session.rules.goal, 11, "initial goal");
+      assert.strictEqual(
+        session.rules.raising, RaisingRule.UnlessStricken, "initial raising");
       assert.strictEqual(session.games.length, 0, "no finished games");
       assert.strictEqual(session.currentGame, null, "no game in progress");
       assert.deepEqual(
@@ -29,30 +32,25 @@ export default function() {
         new TypeError("unknown form of Session constructor"));
     });
 
-    QUnit.test("set goal", function(assert) {
+    QUnit.test("changing rules triggers change event", function(assert) {
       let session = new Session();
-      assert.strictEqual(session.goal, 11, "initial goal");
       session.addEventListener(Session.EVENT_CHANGE, function() {
         assert.step("event");
       });
 
-      session.goal = 3;
-      assert.strictEqual(session.goal, 3, "changed goal");
+      assert.notStrictEqual(session.rules.goal, 3, "not already new goal");
+      session.rules.goal = 3;
+      assert.strictEqual(session.rules.goal, 3, "new goal");
 
-      assert.throws(
-        function() { session.goal = "0"; },
-        new TypeError("goal must be a number"),
-        "string goal");
-      assert.throws(
-        function() { session.goal = 0.5; },
-        new RangeError("goal must be integer >= 1"),
-        "float goal");
-      assert.throws(
-        function() { session.goal = 0; },
-        new RangeError("goal must be integer >= 1"),
-        "small goal");
+      assert.notStrictEqual(
+        session.rules.raising,
+        RaisingRule.UntilEnough,
+        "not already new raising rule");
+      session.rules.raising = RaisingRule.UntilEnough;
+      assert.strictEqual(
+        session.rules.raising, RaisingRule.UntilEnough, "new raising rule");
 
-      assert.verifySteps(["event"], "event happened once");
+      assert.verifySteps(["event", "event"], "event happened twice");
       assert.true(session.updated >= session.created, "was updated");
     });
 
@@ -66,7 +64,7 @@ export default function() {
       let session = new Session();
       session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
-      for (let i = 0; i < session.goal; i += 2)
+      for (let i = 0; i < session.rules.goal; i += 2)
         session.currentGame.currentRound.winner = Team.They;
 
       assert.strictEqual(session.games.length, 1, "single game");
@@ -89,10 +87,10 @@ export default function() {
       let session = new Session();
       session.anotherGame();
       session.currentGame.currentRound.winner = Team.We;
-      for (let i = 0; i < session.goal; i += 2)
+      for (let i = 0; i < session.rules.goal; i += 2)
         session.currentGame.currentRound.winner = Team.They;
       session.anotherGame();
-      for (let i = 0; i < session.goal; i += 2)
+      for (let i = 0; i < session.rules.goal; i += 2)
         session.currentGame.currentRound.winner = Team.We;
 
       assert.strictEqual(session.games.length, 2, "two games")
@@ -194,7 +192,7 @@ export default function() {
       let struct = session.toStruct();
 
       let expected = {
-        goal: 11,
+        rules: session.rules.toStruct(),
         ourTeam: "",
         theirTeam: "",
         games: [],
@@ -219,18 +217,13 @@ export default function() {
       session.theirTeam = "This is them!";
       let struct = session.toStruct();
 
-      let finished = new Game(3);
-      finished.currentRound.raise(Team.We);
-      finished.currentRound.winner = Team.They;
-      let unfinished = new Game(3);
-      unfinished.currentRound.winner = Team.We;
       let expected = {
         id: 15,
-        goal: 3,
+        rules: session.rules.toStruct(),
         ourTeam: "This is us!",
         theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
+        games: session.games.map(g => g.toStruct()),
+        currentGame: session.currentGame.toStruct(),
         created: session.created,
         updated: session.updated,
       };
@@ -240,14 +233,17 @@ export default function() {
 
     QUnit.test("fromStruct - current", function(assert) {
       let orig = new Session();
-      orig.goal = 3;
+      orig.rules.goal = 3;
+      orig.rules.raising = RaisingRule.UntilEnough;
       orig.ourTeam = "This is us!";
       orig.theirTeam = "This is them!";
 
       let copy = new Session(orig.toStruct());
       assert.strictEqual(copy.id, orig.id, "IDs match");
       assert.strictEqual(copy.id, null, "copy ID is null");
-      assert.strictEqual(copy.goal, orig.goal, "goals match");
+      assert.strictEqual(copy.rules.goal, orig.rules.goal, "goals match");
+      assert.strictEqual(
+        copy.rules.raising, orig.rules.raising, "raising rule matches");
       assert.strictEqual(copy.ourTeam, orig.ourTeam, "our teams match");
       assert.strictEqual(copy.theirTeam, orig.theirTeam, "their teams match");
       assert.strictEqual(
@@ -288,9 +284,11 @@ export default function() {
         assert.throws(function() { new Session(struct); }, error, message);
       }
 
-      let unfinished = new Game(3);
+      let rules = new GameRules();
+      rules.goal = 3;
+      let unfinished = new Game(rules);
       unfinished.currentRound.winner = Team.We;
-      let finished = new Game(3);
+      let finished = new Game(rules);
       finished.currentRound.raise(Team.We);
       finished.currentRound.winner = Team.They;
 
@@ -308,18 +306,31 @@ export default function() {
         new TypeError("if struct contains id, then it must be a number"));
       delete struct.id;
 
-      doIt("no goal", new TypeError("struct must contain goal as number"));
+      doIt(
+        "no goal", new TypeError("struct must contain either rules or goal"));
       struct.goal = "3";
-      doIt("string goal", new TypeError("struct must contain goal as number"));
+      doIt(
+        "string goal",
+        new TypeError("if struct contains goal, it must be a number"));
       struct.goal = Math.PI;
       doIt(
         "non-int goal",
-        new RangeError("struct must contain goal >= 1 as integer"));
+        new RangeError("if struct contains goal, must be integer >= 1"));
       struct.goal = 0;
       doIt(
         "small goal",
-        new RangeError("struct must contain goal >= 1 as integer"));
+        new RangeError("if struct contains goal, must be integer >= 1"));
       struct.goal = 3;
+
+      struct.rules = "";
+      doIt(
+        "rules and goal",
+        new TypeError("struct cannot contain both rules and goal"));
+      delete struct.goal;
+      doIt(
+        "string rules",
+        new TypeError("if struct contains rules, they must be an object"));
+      struct.rules = rules;
 
       doIt(
         "no ourTeam", new TypeError("struct must contain ourTeam as string"));
@@ -382,182 +393,134 @@ export default function() {
       new Session(struct);
     });
 
-    // Data Import Tests
-    // =================
-    //
-    // The tests named "fromStruct - vXX - XXXXX" are there to ensure that
-    // future versions of the `Session` class still can correctly read in the
-    // structural data exported by earlier versions. This is needed to ensure
-    // that the data remains usable.
-    //
-    // These tests work by importing an old structural object, and then
-    // exporting a new one. The new one should match with how the current
-    // implementation would represent the same state.
-    //
-    // Therefore you should not modify the `struct` variables. Instead adjust
-    // the `expected` variable, to make sure the reexported data matches what
-    // is now correct.
+    // data for the version import tests
+    let rules = new GameRules();
+    rules.goal = 3;
+    rules.raising = RaisingRule.UntilEnough;
+    let finished = new Game(rules);
+    finished.currentRound.raise(Team.We);
+    finished.currentRound.winner = Team.They;
+    let unfinished = new Game(rules);
+    unfinished.currentRound.winner = Team.We;
 
-    QUnit.test("fromStruct - v1 - new session", function(assert) {
-      let struct = {
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-      };
-      let session = new Session(struct);
+    QUnit.test.each(
+      "fromStruct - new session",
+      {
+        v1: {
+          goal: 3,
+          ourTeam: "",
+          theirTeam: "",
+          games: [],
+          currentGame: null,
+        },
+        v2: {
+          id: 23,
+          goal: 3,
+          ourTeam: "",
+          theirTeam: "",
+          games: [],
+          currentGame: null,
+        },
+        v3: {
+          id: 23,
+          goal: 3,
+          ourTeam: "",
+          theirTeam: "",
+          games: [],
+          currentGame: null,
+          created: new Date("2026-02-26T20:05:00"),
+          updated: new Date("2026-02-26T20:05:00"),
+        },
+        v4: {
+          id: 23,
+          rules: rules.toStruct(),
+          ourTeam: "",
+          theirTeam: "",
+          games: [],
+          currentGame: null,
+          created: new Date("2026-02-26T20:05:00"),
+          updated: new Date("2026-02-26T20:05:00"),
+        },
+      },
+      function(assert, input) {
+        let session = new Session(input);
+        let expected = {
+          rules: rules.toStruct(),
+          ourTeam: "",
+          theirTeam: "",
+          games: [],
+          currentGame: null,
+          created: new Date("2026-02-26T22:00:00"),
+          updated: new Date("2026-02-26T22:00:00"),
+        };
+        if ("id" in input)
+          expected.id = input.id;
+        if ("created" in input)
+          expected.created = new Date(input.created);
+        if ("updated" in input)
+          expected.updated = new Date(input.updated);
+        assert.deepEqual(session.toStruct(), expected, "reexport matches");
+      }
+    );
 
-      let expected = {
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-        created: new Date("2026-02-26T22:00:00"),
-        updated: new Date("2026-02-26T22:00:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v1 - finished & unfinished", function(assert) {
-      let finished = new Game(3);
-      finished.currentRound.raise(Team.We);
-      finished.currentRound.winner = Team.They;
-      let unfinished = new Game(3);
-      unfinished.currentRound.winner = Team.We;
-
-      let struct = {
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-      };
-      let session = new Session(struct);
-
-      let expected = {
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-        created: new Date("2026-02-26T22:00:00"),
-        updated: new Date("2026-02-26T22:00:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v2 - new session", function(assert) {
-      let struct = {
-        id: 23,
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-      };
-      let session = new Session(struct);
-
-      let expected = {
-        id: 23,
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-        created: new Date("2026-02-26T22:00:00"),
-        updated: new Date("2026-02-26T22:00:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v2 - finished & unfinished", function(assert) {
-      let finished = new Game(3);
-      finished.currentRound.raise(Team.We);
-      finished.currentRound.winner = Team.They;
-      let unfinished = new Game(3);
-      unfinished.currentRound.winner = Team.We;
-
-      let struct = {
-        id: 17,
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-      };
-      let session = new Session(struct);
-
-      let expected = {
-        id: 17,
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-        created: new Date("2026-02-26T22:00:00"),
-        updated: new Date("2026-02-26T22:00:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v3 - new session", function(assert) {
-      let struct = {
-        id: 23,
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-        created: new Date("2026-02-26T20:05:00"),
-        updated: new Date("2026-02-26T20:05:00"),
-      };
-      let session = new Session(struct);
-
-      let expected = {
-        id: 23,
-        goal: 3,
-        ourTeam: "",
-        theirTeam: "",
-        games: [],
-        currentGame: null,
-        created: new Date("2026-02-26T20:05:00"),
-        updated: new Date("2026-02-26T20:05:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
-
-    QUnit.test("fromStruct - v3 - finished & unfinished", function(assert) {
-      let finished = new Game(3);
-      finished.currentRound.raise(Team.We);
-      finished.currentRound.winner = Team.They;
-      let unfinished = new Game(3);
-      unfinished.currentRound.winner = Team.We;
-
-      let struct = {
-        id: 17,
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-        created: new Date("2026-02-26T20:05:00"),
-        updated: new Date("2026-02-26T20:05:00"),
-      };
-      let session = new Session(struct);
-
-      let expected = {
-        id: 17,
-        goal: 3,
-        ourTeam: "This is us!",
-        theirTeam: "This is them!",
-        games: [ finished.toStruct() ],
-        currentGame: unfinished.toStruct(),
-        created: new Date("2026-02-26T20:05:00"),
-        updated: new Date("2026-02-26T20:05:00"),
-      };
-      assert.deepEqual(session.toStruct(), expected, "reexport matches");
-    });
+    QUnit.test.each(
+      "fromStruct - finished & unfinished",
+      {
+        v1: {
+          goal: 3,
+          ourTeam: "This is us!",
+          theirTeam: "This is them!",
+          games: [ finished.toStruct() ],
+          currentGame: unfinished.toStruct(),
+        },
+        v2: {
+          id: 17,
+          goal: 3,
+          ourTeam: "This is us!",
+          theirTeam: "This is them!",
+          games: [ finished.toStruct() ],
+          currentGame: unfinished.toStruct(),
+        },
+        v3: {
+          id: 17,
+          goal: 3,
+          ourTeam: "This is us!",
+          theirTeam: "This is them!",
+          games: [ finished.toStruct() ],
+          currentGame: unfinished.toStruct(),
+          created: new Date("2026-02-26T20:05:00"),
+          updated: new Date("2026-02-26T20:05:00"),
+        },
+        v4: {
+          id: 17,
+          rules: rules.toStruct(),
+          ourTeam: "This is us!",
+          theirTeam: "This is them!",
+          games: [ finished.toStruct() ],
+          currentGame: unfinished.toStruct(),
+          created: new Date("2026-02-26T20:05:00"),
+          updated: new Date("2026-02-26T20:05:00"),
+        },
+      },
+      function(assert, input) {
+        let session = new Session(input);
+        let expected = {
+          rules: rules.toStruct(),
+          ourTeam: "This is us!",
+          theirTeam: "This is them!",
+          games: [ finished.toStruct() ],
+          currentGame: unfinished.toStruct(),
+          created: new Date("2026-02-26T22:00:00"),
+          updated: new Date("2026-02-26T22:00:00"),
+        };
+        if ("id" in input)
+          expected.id = input.id;
+        if ("created" in input)
+          expected.created = new Date(input.created);
+        if ("updated" in input)
+          expected.updated = new Date(input.updated);
+        assert.deepEqual(session.toStruct(), expected, "reexport matches");
+      }
+    );
   });
 }

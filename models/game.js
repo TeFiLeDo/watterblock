@@ -1,5 +1,6 @@
 "use strict";
 
+import GameRules, { RaisingRule } from "/models/game_rules.js";
 import { Round, Team } from "/models/round.js";
 import RoundResult from "/models/round_result.js";
 
@@ -31,12 +32,17 @@ export default class Game extends EventTarget {
     return this.#rounds;
   }
 
-  /** How many points a team needs to win. */
-  #goal = 11;
+  /** The rules of this game. */
+  #rules = new GameRules();
 
-  /** Get how many points are needed to win. */
-  get goal() {
-    return this.#goal;
+  /** Get the rules of this game.
+   *
+   * Note that this actually returns a copy of the game rules. They cannot be
+   * changed, as changing the rules during a game would a) be unfair and b)
+   * rather difficult to correctly implement.
+   */
+  get rules() {
+    return new GameRules(this.#rules);
   }
 
   /** The current round.
@@ -51,14 +57,12 @@ export default class Game extends EventTarget {
 
   constructor(value) {
     super();
-    if (value === undefined || typeof value === "number") {
-      if (typeof value === "number")
-        this.#goal = value;
+    if (value === undefined || value instanceof GameRules) {
+      if (value instanceof GameRules)
+        this.#rules = value;
 
-      if (this.#goal < 1)
-        throw new RangeError("goal must be at least 1");
-
-      this.#currentRound = new Round(this.#goal, this.#goal);
+      this.#currentRound = new Round(
+        this.#rules.raisingLimit(0), this.#rules.raisingLimit(0));
       this.#currentRound.addEventListener(
         Round.EVENT_CHANGE, this.#boundHandleRoundChange);
     } else if (typeof value === "object") {
@@ -78,7 +82,7 @@ export default class Game extends EventTarget {
     let ourPoints = 0;
     let theirPoints = 0;
     let tailor = null;
-    const tailorGoal = this.#goal - 2;
+    const tailorGoal = this.#rules.goal - 2;
 
     for (let r of this.#rounds) {
       if (r.winner === Team.We)
@@ -94,8 +98,8 @@ export default class Game extends EventTarget {
       }
     }
 
-    let weWon = ourPoints >= this.goal;
-    let theyWon = theirPoints >= this.goal;
+    let weWon = ourPoints >= this.#rules.goal;
+    let theyWon = theirPoints >= this.#rules.goal;
     let winner;
 
     if (!weWon && !theyWon) {
@@ -137,8 +141,8 @@ export default class Game extends EventTarget {
 
       if (result.winner === null) {
         this.#currentRound = new Round(
-          Math.max(this.#goal - result.ourPoints, 2),
-          Math.max(this.#goal - result.theirPoints, 2));
+          this.#rules.raisingLimit(result.ourPoints),
+          this.#rules.raisingLimit(result.theirPoints));
         this.#currentRound.addEventListener(
           Round.EVENT_CHANGE, this.#boundHandleRoundChange);
       }
@@ -165,7 +169,7 @@ export default class Game extends EventTarget {
    */
   toStruct() {
     return {
-      goal: this.#goal,
+      rules: this.#rules.toStruct(),
       rounds: this.#rounds.map((r) => r.toStruct()),
       currentRound:
         this.#currentRound !== null ? this.#currentRound.toStruct() : null,
@@ -177,11 +181,21 @@ export default class Game extends EventTarget {
     if (typeof value !== "object")
       throw new TypeError("struct must be an object");
 
-    if (typeof value.goal !== "number")
-      throw new TypeError("struct must contain goal as number");
-    if (!Number.isInteger(value.goal) || value.goal < 1)
-      throw new RangeError("struct must contain goal >= 1 as integer");
-    this.#goal = value.goal;
+    if ("goal" in value && "rules" in value)
+      throw new TypeError("struct cannot contain both rules and goal");
+    else if ("goal" in value) {
+      if (typeof value.goal !== "number")
+        throw new TypeError("if struct contains goal, it must be a number");
+      if (!Number.isInteger(value.goal) || value.goal < 1)
+        throw new RangeError("if struct contains goal, must be integer >= 1");
+      this.#rules.goal = value.goal;
+      this.#rules.raising = RaisingRule.UntilEnough;
+    } else if ("rules" in value) {
+      if (typeof value.rules !== "object")
+        throw new TypeError("if struct contains rules, they must be an object");
+      this.#rules = new GameRules(value.rules);
+    } else
+      throw new TypeError("struct must contain either rules or goal");
 
     if (!("rounds" in value))
       throw new TypeError("struct must contain rounds");

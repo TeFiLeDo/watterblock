@@ -1,5 +1,6 @@
 "use strict";
 
+import GameRules, { RaisingRule } from "/models/game_rules.js";
 import Game from "/models/game.js";
 import { Team } from "/models/round.js";
 
@@ -59,30 +60,20 @@ export default class Session extends EventTarget {
    *
    * Triggers the `Session.EVENT_CHANGE` event and sets the update time.
    */
-  #changed() {
+  #changed = () => {
     this.#updated = new Date();
     this.dispatchEvent(new CustomEvent(Session.EVENT_CHANGE));
   }
 
-  /** The amout of points at which individual games are won.
+  /** The rules of the next game. */
+  #rules = new GameRules();
+
+  /** Get the rules of the next game.
    *
-   * Only applies to new games.
+   * Note that the returned object can be manipulated.
    */
-  #goal = 11;
-
-  /** Get the goal for new games. */
-  get goal() {
-    return this.#goal;
-  }
-
-  /** Set the goal for new games. */
-  set goal(value) {
-    if (typeof value !== "number")
-      throw new TypeError("goal must be a number");
-    if (!Number.isInteger(value) || value < 1)
-      throw new RangeError("goal must be integer >= 1");
-    this.#goal = value;
-    this.#changed();
+  get rules() {
+    return this.#rules;
   }
 
   /** The name or members of the "we" team. */
@@ -139,7 +130,7 @@ export default class Session extends EventTarget {
   /** Add another round if there is no current one. */
   anotherGame() {
     if (this.#currentGame === null) {
-      this.#currentGame = new Game(this.goal);
+      this.#currentGame = new Game(this.rules);
       this.#currentGame.addEventListener(
         Game.EVENT_CHANGE, this.#boundHandleGameChange);
       this.#changed();
@@ -183,6 +174,7 @@ export default class Session extends EventTarget {
   constructor(value) {
     super();
     if (value === undefined) {
+      this.#rules.addEventListener(GameRules.EVENT_CHANGE, this.#changed);
     } else if (typeof value === "object") {
       this.#fromStruct(value);
     } else {
@@ -205,7 +197,7 @@ export default class Session extends EventTarget {
    */
   toStruct() {
     let res = {
-      goal: this.#goal,
+      rules: this.#rules.toStruct(),
       ourTeam: this.#ourTeam,
       theirTeam: this.#theirTeam,
       games: this.#games.map((g) => g.toStruct()),
@@ -235,11 +227,22 @@ export default class Session extends EventTarget {
       this.#id = value.id;
     }
 
-    if (typeof value.goal !== "number")
-      throw new TypeError("struct must contain goal as number");
-    if (!Number.isInteger(value.goal) || value.goal < 1)
-      throw new RangeError("struct must contain goal >= 1 as integer");
-    this.#goal = value.goal;
+    if ("goal" in value && "rules" in value)
+      throw new TypeError("struct cannot contain both rules and goal");
+    else if ("goal" in value) {
+      if (typeof value.goal !== "number")
+        throw new TypeError("if struct contains goal, it must be a number");
+      if (!Number.isInteger(value.goal) || value.goal < 1)
+        throw new RangeError("if struct contains goal, must be integer >= 1");
+      this.#rules.goal = value.goal;
+      this.#rules.raising = RaisingRule.UntilEnough;
+    } else if ("rules" in value) {
+      if (typeof value.rules !== "object")
+        throw new TypeError("if struct contains rules, they must be an object");
+      this.#rules = new GameRules(value.rules);
+      this.#rules.addEventListener(GameRules.EVENT_CHANGE, this.#changed);
+    } else
+      throw new TypeError("struct must contain either rules or goal");
 
     if (typeof value.ourTeam !== "string")
       throw new TypeError("struct must contain ourTeam as string");
