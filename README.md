@@ -40,15 +40,11 @@ Structure
 4. `models/` contains the "business logic", i.e. classes representing the current state and its
    behaviour at runtime.
 5. `data/` contains components to store that state in persistent storage for later access.
-6. `ui/` contains UI components.
-   1. `ui/layout.js` is a layout component shared by all views, for a consistent shell.
-   2. `ui/views/` contains independent views, i.e. different "screens".
-   3. `ui/components/` contains individual components, which are parts of views, that can also be
-      reused.
+6. `ui/` contains the user interface.
 7. `service-worker.js` is a ServiceWorker-Script, allowing for offline usage.
 8. `manifest.json` makes it possible to install the notepad as an app.
-9. `test.html` is a unit test runner, that runs the tests in `test.js`. That in turn loads tests
-   from various `*.test.js` files from across the project.
+9. `test.html` loads and runs the unit tests from the various `*.test.js` files across the project.
+   Those files are co-located with the stuff they contain tests for, to make them easier to manage.
 10. `vendored/` contains copies of external dependencies, for direct use.
 
 Dependencies
