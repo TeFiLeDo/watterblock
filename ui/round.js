@@ -7,6 +7,7 @@ export default class RoundView {
   /** @param { { attrs: { model: Round } } } param The round model to use. */
   view({ attrs: { model } }) {
     return m("section.current-round", [
+      m("h3", "Rundnschreiba"),
       m("span.current-points", `${model.points}`),
       m("button.they-raise",
         {

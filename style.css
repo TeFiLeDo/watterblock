@@ -66,6 +66,7 @@ button {
 .current-round {
   display: grid;
   grid-template-areas:
+    "title title title title"
     "they-raise current-points current-points we-raise"
     "they-win they-win we-win we-win";
   grid-template-columns: 1fr auto auto 1fr;
@@ -74,25 +75,29 @@ button {
   position: sticky;
   bottom: 0;
 
-  .current-points {
+  >h3 {
+    grid-area: title;
+  }
+
+  >.current-points {
     grid-area: current-points;
     align-content: center;
     margin: 0 1em;
   }
 
-  .they-raise {
+  >.they-raise {
     grid-area: they-raise;
   }
 
-  .we-raise {
+  >.we-raise {
     grid-area: we-raise;
   }
 
-  .they-win {
+  >.they-win {
     grid-area: they-win;
   }
 
-  .we-win {
+  >.we-win {
     grid-area: we-win;
   }
 }
