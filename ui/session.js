@@ -6,27 +6,41 @@ import RoundView from "/ui/round.js";
 import SessionHead from "/ui/session_head.js";
 
 export default class SessionView {
+  #headOpen = false;
+
   /** @param {{ attrs: { model: Session } }} param The session model to use. */
   view({ attrs: { model } }) {
 
     let res = model.result;
 
     return m("article.session-view", [
-      m(m.route.Link, { href: "/", selector: "button" }, "Zruck"),
+      m(".session-view-header", [
+        m("h2", "Satz"),
+        m(
+          "button",
+          { onclick: () => this.#headOpen = !this.#headOpen },
+          "Regln"
+        ),
+      ]),
       ( model.games.length === 0 && model.currentGame === null)
         ? m(SessionHead, { model })
         : m.fragment([
-            m("details", [
-              m("summary", "Einstellungen"),
-              m(SessionHead, { model }),
-            ]),
+            this.#headOpen ? m(SessionHead, { model }) : null,
             m("section.record", [
-              m("h3", "Mitschrift"),
+              this.#headOpen ? m("h3", "Mitschrift") : null,
               m("table", [
                 m("thead", [
                   m("tr", [
-                    m("th", ["se", " ", "•".repeat(res.theirPoints)]),
-                    m("th", ["mia", " ", "•".repeat(res.ourPoints)]),
+                    m("th", [
+                      model.theirTeam ? model.theirTeam : "Se",
+                      " ",
+                      "•".repeat(res.theirPoints),
+                    ]),
+                    m("th", [
+                      model.ourTeam ? model.ourTeam : "Mia",
+                      " ",
+                       "•".repeat(res.ourPoints),
+                     ]),
                   ]),
                 ]),
                 model.games.map((g) => m(GameView, { model: g })),

@@ -11,7 +11,11 @@ m.route(document.body, "/", {
       let session = newSession ? null : parseInt(vnode.attrs.session);
       session = isNaN(session) ? null : session;
 
-      return m(Layout, m(BaseView, { newSession, session }));
+      return m(
+        Layout,
+        { backHref: session ? "/" : null },
+        m(BaseView, { newSession, session })
+      );
     },
   },
 });

@@ -8,7 +8,7 @@ export default class SessionHead {
   view({ attrs: { model } }) {
     return m("section.session_head", [
       m("h3", "Satzeinstellungen"),
-      m("section.session_head_names", [
+      m("section.session-head-names", [
         m("h4", "Teamnamen"),
         m("label", [
           "Nam von eana",
@@ -27,7 +27,7 @@ export default class SessionHead {
           }),
         ]),
       ]),
-      m("section.session_head_base", [
+      m("section.session-head-base", [
         m("h4", "Grundregln"),
         m("label", [
           "Punkte zum gwinna",
@@ -45,7 +45,7 @@ export default class SessionHead {
           }),
         ]),
       ]),
-      m("section.session_head_raising", [
+      m("section.session-head-raising", [
         m("h4", "Erhöhn"),
         m("label", [
           m("input", {

@@ -1,36 +1,148 @@
 html {
   height: 100%;
+  font-family: sans-serif;
+
+  --color-regular-text: white;
+  --color-regular-background: lch(from black calc(l + 10) c h);
+  --color-alter-text: white;
+  --color-alter-background: black;
+  --color-primary-text: black;
+  --color-primary-background: lch(from orange calc(l + 10) c h);
+
+  color: var(--color-regular-text);
+  background-color: var(--color-regular-background);
 }
 
 body {
   min-height: 100%;
   height: 1px;
+  display: flex;
+  flex-direction: column;
 }
 
-main {
-  display: contents;
+h1 {
+  font-size: 2em;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.75em;
+  margin: 0;
+}
+
+h3 {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+h4 {
+  font-size: 1.35em;
+  margin: 0;
+}
+
+h5 {
+  font-size: 1.25em;
+  margin: 0;
+}
+
+h6 {
+  font-size: 1.1em;
+  margin: 0;
+}
+
+button {
+  border: none;
+  border-radius: 5px;
+  color: var(--color-primary-text);
+  background: var(--color-primary-background);
+  padding: 1em 1em;
+  margin: 1em;
+
+  &:disabled {
+    color: hsl(from var(--color-primary-text) h s calc(l + 25));
+    background-color:
+      hsl(from var(--color-primary-background) h s calc(l + 25));
+  }
+}
+
+header.layout {
+  display: flex;
+  align-items: center;
+
+  background-color: var(--color-alter-background);
+  color: var(--color-alter-text);
+
+  >* {
+    padding: 0.5em 0.25em;
+    font-size: 2em;
+    color: inherit;
+    text-decoration: none;
+    margin: 0;
+
+    &:first-child {
+      padding-left: 0.5em;
+      padding-right: 0.5em;
+    }
+
+    &:nth-child(2) {
+      padding-left: 0;
+    }
+
+    &:last-child {
+      padding-right: 0.5em;
+    }
+  }
+
+}
+
+main.layout {
+  flex-grow: 1;
 }
 
 .session-view {
-  min-height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 100%;
   gap: 1em;
+
+  >* {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  >:first-child {
+    padding-top: 1rem;
+  }
+
+  >:last-child {
+    padding-bottom: 1rem;
+  }
+
+  .session-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    * {
+      margin: 0;
+    }
+  }
 
   >.spacer {
     flex-grow: 1;
   }
 
   table {
-    border-collapse: collapse;
+    font-size: 1.5em;
     table-layout: fixed;
     width: 100%;
     text-align: center;
+    border-spacing: 0;
   }
 
   th,
   td {
-    border-right: 1px solid black;
+    border-right: 1px solid var(--color-regular-text);
 
     &:last-child {
       border-right: none;
@@ -38,29 +150,34 @@ main {
   }
 
   thead {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--color-regular-text);
     position: sticky;
     top: 0;
-    background: white;
+    background: var(--color-regular-background);
+
+    th {
+      border-bottom: 3px double var(--color-regular-text);
+      padding: 0.5em 0;
+    }
   }
 
   tbody {
-    border-bottom: 1px solid black;
+    tr:last-child {
+      td {
+        border-bottom: 1px solid var(--color-regular-text);
+      }
+    }
 
     &:last-of-type {
-      border-bottom: none;
+      tr:last-child {
+        td {
+          border-bottom: none;
+        }
+      }
     }
 
     min-height: 5px;
   }
-}
-
-button {
-  border: none;
-  border-radius: 5px;
-  background: light-grey;
-  padding: 0.5em 1em;
-  margin: 0.5em;
 }
 
 .current-round {
@@ -70,19 +187,30 @@ button {
     "they-raise current-points current-points we-raise"
     "they-win they-win we-win we-win";
   grid-template-columns: 1fr auto auto 1fr;
+  gap: 1em;
 
-  background: white;
+  background: var(--color-regular-background);
   position: sticky;
   bottom: 0;
 
+  padding: 1em;
+
+  color: var(--color-alter-text);
+  background-color: var(--color-alter-background);
+
+  button {
+    margin: 0;
+  }
+
   >h3 {
     grid-area: title;
+    margin: 0;
   }
 
   >.current-points {
     grid-area: current-points;
     align-content: center;
-    margin: 0 1em;
+    font-size: 2em;
   }
 
   >.they-raise {
@@ -105,10 +233,12 @@ button {
 .continue {
   position: sticky;
   bottom: 0;
-  width: 100%;
-  background: white;
+  color: var(--color-alter-text);
+  background-color: var(--color-alter-background);
+  padding: 1em;
 
-  >* {
-    width: calc(100% - 1em);
+  button {
+    margin: 0;
+    width: 100%;
   }
 }

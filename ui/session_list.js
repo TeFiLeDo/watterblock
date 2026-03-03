@@ -24,10 +24,10 @@ export default class SessionList {
               onclick: () => onSelect(s),
             },
             [
-              m("p", s.ourTeam !== "" ? s.ourTeam : "Unbnannts Team"),
-              m("p", s.theirTeam !== "" ? s.theirTeam : "Unbnannts Team"),
-              m("p", "•".repeat(s.result.ourPoints)),
               m("p", "•".repeat(s.result.theirPoints)),
+              m("p", s.theirTeam !== "" ? s.theirTeam : "Se"),
+              m("p", s.ourTeam !== "" ? s.ourTeam : "Mia"),
+              m("p", "•".repeat(s.result.ourPoints)),
             ],
           ),
         ]))

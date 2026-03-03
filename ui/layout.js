@@ -25,7 +25,7 @@ export default class Layout {
     console.error("database error", error);
   }
 
-  view(vnode) {
+  view({ children, attrs: { backHref }}) {
     if (this.#db.failed)
       return m.fragment([
         m("h1", "Watterblock kann nicht geöffnet werden"),
@@ -45,6 +45,12 @@ export default class Layout {
     if (!this.#db.open)
       return m("p", "Öffne Datenbank, bitte warten…");
 
-    return m("main", vnode.children);
+    return m.fragment([
+      m("header.layout", [
+        backHref ? m(m.route.Link, { href: backHref }, "←") : null,
+        m("h1", "Watterblock"),
+      ]),
+      m("main.layout", children),
+    ]);
   }
 }
