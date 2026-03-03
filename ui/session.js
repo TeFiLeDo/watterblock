@@ -15,9 +15,9 @@ export default class SessionView {
 
     return m("article.session-view", [
       m(".session-view-header", [
-        m("h2", "Satz"),
+        m("h2.positioned", "Satz"),
         m(
-          "button",
+          "button.positioned",
           { onclick: () => this.#headOpen = !this.#headOpen },
           "Regln"
         ),
@@ -29,7 +29,7 @@ export default class SessionView {
             m("section.record", [
               this.#headOpen ? m("h3", "Mitschrift") : null,
               m("table", [
-                m("thead", [
+                m("thead.background", [
                   m("tr", [
                     m("th", [
                       model.theirTeam ? model.theirTeam : "Se",
@@ -55,8 +55,8 @@ export default class SessionView {
         ? model.currentGame.currentRound !== null
           ? m(RoundView, { model: model.currentGame.currentRound })
           : null
-        : m(".continue", [
-            m("button",
+        : m(".continue.alter.background", [
+            m("button.positioned",
               {
                 onclick: () => {
                   model.anotherGame();

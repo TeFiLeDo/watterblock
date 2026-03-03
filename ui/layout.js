@@ -46,7 +46,7 @@ export default class Layout {
       return m("p", "Öffne Datenbank, bitte warten…");
 
     return m.fragment([
-      m("header.layout", [
+      m("header.layout.alter.background", [
         backHref ? m(m.route.Link, { href: backHref }, "←") : null,
         m("h1", "Watterblock"),
       ]),

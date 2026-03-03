@@ -20,6 +20,38 @@ html {
 
   color: var(--color-regular-text);
   background-color: var(--color-regular-background);
+
+  --color-active-text: var(--color-regular-text);
+  --color-active-background: var(--color-regular-background);
+}
+
+.background {
+  background-color: var(--color-active-background);
+}
+
+.regular,
+.alter,
+.primary {
+  color: var(--color-alter-text);
+}
+
+.regular {
+  --color-active-text: var(--color-regular-text);
+  --color-active-background: var(--color-regular-background);
+}
+
+.alter {
+  --color-active-text: var(--color-alter-text);
+  --color-active-background: var(--color-alter-background);
+}
+
+.primary {
+  --color-active-text: var(--color-primary-text);
+  --color-active-background: var(--color-primary-background);
+}
+
+.positioned {
+  margin: 0;
 }
 
 body {
@@ -31,32 +63,26 @@ body {
 
 h1 {
   font-size: 2em;
-  margin: 0;
 }
 
 h2 {
   font-size: 1.75em;
-  margin: 0;
 }
 
 h3 {
   font-size: 1.5em;
-  margin: 0;
 }
 
 h4 {
   font-size: 1.35em;
-  margin: 0;
 }
 
 h5 {
   font-size: 1.25em;
-  margin: 0;
 }
 
 h6 {
   font-size: 1.1em;
-  margin: 0;
 }
 
 button {
@@ -85,9 +111,6 @@ header.layout {
   display: flex;
   align-items: center;
 
-  background-color: var(--color-alter-background);
-  color: var(--color-alter-text);
-
   >* {
     padding: 0.5em 0.25em;
     font-size: 2em;
@@ -108,7 +131,6 @@ header.layout {
       padding-right: 0.5em;
     }
   }
-
 }
 
 main.layout {
@@ -138,10 +160,6 @@ main.layout {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    * {
-      margin: 0;
-    }
   }
 
   >.spacer {
@@ -156,20 +174,15 @@ main.layout {
     border-spacing: 0;
   }
 
-  th,
-  td {
+  th:not(:last-child),
+  td:not(:last-child) {
     border-right: 1px solid var(--color-regular-text);
-
-    &:last-child {
-      border-right: none;
-    }
   }
 
   thead {
     border-bottom: 1px solid var(--color-regular-text);
     position: sticky;
     top: 0;
-    background: var(--color-regular-background);
 
     th {
       border-bottom: 3px double var(--color-regular-text);
@@ -178,18 +191,8 @@ main.layout {
   }
 
   tbody {
-    tr:last-child {
-      td {
-        border-bottom: 1px solid var(--color-regular-text);
-      }
-    }
-
-    &:last-of-type {
-      tr:last-child {
-        td {
-          border-bottom: none;
-        }
-      }
+    &:not(:last-of-type) tr:last-child td {
+      border-bottom: 1px solid var(--color-regular-text);
     }
 
     min-height: 5px;
@@ -205,22 +208,13 @@ main.layout {
   grid-template-columns: 1fr auto auto 1fr;
   gap: 1em;
 
-  background: var(--color-regular-background);
   position: sticky;
   bottom: 0;
 
   padding: 1em;
 
-  color: var(--color-alter-text);
-  background-color: var(--color-alter-background);
-
-  button {
-    margin: 0;
-  }
-
   >h3 {
     grid-area: title;
-    margin: 0;
   }
 
   >.current-points {
@@ -249,12 +243,9 @@ main.layout {
 .continue {
   position: sticky;
   bottom: 0;
-  color: var(--color-alter-text);
-  background-color: var(--color-alter-background);
   padding: 1em;
 
   button {
-    margin: 0;
     width: 100%;
   }
 }
