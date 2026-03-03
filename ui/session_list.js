@@ -12,7 +12,7 @@ export default class SessionList {
         options: {
           state: { newSession: true },
         },
-      }, "Neie Session"),
+      }, "Neia Satz"),
       m("ol", [
         models.map((s) => m("li", [
           m(
