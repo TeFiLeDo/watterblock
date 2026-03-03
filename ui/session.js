@@ -14,20 +14,22 @@ export default class SessionView {
     let res = model.result;
 
     return m("article.session-view", [
-      m(".session-view-header", [
-        m("h2.positioned", "Satz"),
-        (model.games.length !== 0)
-          ? m(
-              "button.positioned",
-              { onclick: () => this.#headOpen = !this.#headOpen },
-              "Regln"
-            )
-          : null,
-      ]),
       ( model.games.length === 0 && model.currentGame === null)
         ? m(SessionHead, { model })
         : m.fragment([
-            this.#headOpen ? m(SessionHead, { model }) : null,
+            m(".session-view-header", [
+              m("h2.positioned", "Satz"),
+              m(
+                "button.positioned",
+                { onclick: () => this.#headOpen = !this.#headOpen },
+                "Regln"
+              ),
+            ]),
+
+            this.#headOpen
+              ? m(".alter.background.padded", m(SessionHead, { model }))
+              : null,
+
             m("section.record", [
               this.#headOpen ? m("h3", "Mitschrift") : null,
               m("table", [
@@ -52,7 +54,7 @@ export default class SessionView {
               ])
             ]),
       ]),
-      m(".spacer"),
+
       model.currentGame !== null
         ? model.currentGame.currentRound !== null
           ? m(RoundView, { model: model.currentGame.currentRound })

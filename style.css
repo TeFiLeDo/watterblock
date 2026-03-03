@@ -4,18 +4,26 @@ html {
 
   --color-regular-text: white;
   --color-regular-background: lch(from black calc(l + 10) c h);
+  --color-regular-field: black;
   --color-alter-text: white;
   --color-alter-background: black;
+  --color-alter-field: var(--color-regular-background);
   --color-primary-text: black;
   --color-primary-background: lch(from orange calc(l + 10) c h);
+  --color-primary-field:
+    lch(from var(--color-primary-background) calc(l + 25) c h);
 
   @media (prefers-color-scheme: light) {
     --color-regular-text: black;
     --color-regular-background: white;
+    --color-regular-field: var(--color-alter-background);
     --color-alter-text: black;
     --color-alter-background: lch(from white calc(l - 10) c h);
+    --color-alter-field: white;
     --color-primary-text: black;
     --color-primary-background: lch(from orange calc(l + 10) c h);
+    --color-primary-field:
+      lch(from var(--color-primary-background) calc(l + 25) c h);
   }
 
   color: var(--color-regular-text);
@@ -23,6 +31,7 @@ html {
 
   --color-active-text: var(--color-regular-text);
   --color-active-background: var(--color-regular-background);
+  --color-active-field: var(--color-regular-field);
 }
 
 .background {
@@ -32,26 +41,33 @@ html {
 .regular,
 .alter,
 .primary {
-  color: var(--color-alter-text);
+  color: var(--color-active-text);
 }
 
 .regular {
   --color-active-text: var(--color-regular-text);
   --color-active-background: var(--color-regular-background);
+  --color-active-field: var(--color-regular-field);
 }
 
 .alter {
   --color-active-text: var(--color-alter-text);
   --color-active-background: var(--color-alter-background);
+  --color-active-field: var(--color-alter-field);
 }
 
 .primary {
   --color-active-text: var(--color-primary-text);
   --color-active-background: var(--color-primary-background);
+  --color-active-field: var(--color-primary-field);
 }
 
 .positioned {
   margin: 0;
+}
+
+.padded {
+  padding: 1em;
 }
 
 body {
@@ -63,26 +79,38 @@ body {
 
 h1 {
   font-size: 2em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 h2 {
   font-size: 1.75em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 h3 {
   font-size: 1.5em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 h4 {
   font-size: 1.35em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 h5 {
   font-size: 1.25em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 h6 {
   font-size: 1.1em;
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
 }
 
 button {
@@ -162,7 +190,7 @@ main.layout {
     align-items: center;
   }
 
-  >.spacer {
+  :nth-last-child(2) {
     flex-grow: 1;
   }
 
@@ -247,5 +275,54 @@ main.layout {
 
   button {
     width: 100%;
+  }
+}
+
+.field {
+  display: grid;
+  grid-template-areas: "label" "field" "description";
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, min-content);
+  column-gap: 1ch;
+  row-gap: 0.5ch;
+
+  &:not(:last-child) {
+    margin-bottom: 1em;
+  }
+
+  &:has(input[type=radio]),
+  &:has(input[type=checkbox]) {
+    grid-template-areas: "field label" ". description";
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: repeat(2, min-content);
+  }
+
+  .label {
+    grid-area: label;
+    font-weight: bold;
+  }
+
+  input {
+    grid-area: field;
+    padding: 0.5em;
+    border-radius: 5px;
+
+    background-color: var(--color-active-field);
+    border: solid 1px var(--color-active-text);
+    color: var(--color-active-text);
+  }
+
+  .description {
+    grid-area: description;
+  }
+}
+
+.session-head {
+  >:first-child {
+    margin-top: 0;
+  }
+
+  >:last-child {
+    margin-bottom: 0;
   }
 }
