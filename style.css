@@ -9,6 +9,15 @@ html {
   --color-primary-text: black;
   --color-primary-background: lch(from orange calc(l + 10) c h);
 
+  @media (prefers-color-scheme: light) {
+    --color-regular-text: black;
+    --color-regular-background: white;
+    --color-alter-text: black;
+    --color-alter-background: lch(from white calc(l - 10) c h);
+    --color-primary-text: black;
+    --color-primary-background: lch(from orange calc(l + 10) c h);
+  }
+
   color: var(--color-regular-text);
   background-color: var(--color-regular-background);
 }
