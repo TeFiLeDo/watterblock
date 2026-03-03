@@ -16,11 +16,13 @@ export default class SessionView {
     return m("article.session-view", [
       m(".session-view-header", [
         m("h2.positioned", "Satz"),
-        m(
-          "button.positioned",
-          { onclick: () => this.#headOpen = !this.#headOpen },
-          "Regln"
-        ),
+        (model.games.length !== 0)
+          ? m(
+              "button.positioned",
+              { onclick: () => this.#headOpen = !this.#headOpen },
+              "Regln"
+            )
+          : null,
       ]),
       ( model.games.length === 0 && model.currentGame === null)
         ? m(SessionHead, { model })
