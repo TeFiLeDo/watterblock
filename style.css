@@ -72,6 +72,13 @@ button {
     background-color:
       hsl(from var(--color-primary-background) h s calc(l + 25));
   }
+
+  &:hover,
+  &:focus {
+    color: hsl(from var(--color-primary-text) h s calc(l + 10));
+    background-color:
+      hsl(from var(--color-primary-background) h s calc(l + 10));
+  }
 }
 
 header.layout {
