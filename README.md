@@ -31,16 +31,45 @@ following principles will guide its development.
 6. **Good documentation:** I'll most certainly forget how some things work at some point. Thus it
    is paramount to keep a good documentation, so I won't have to read through everything again.
 
+### Trade-offs
+
+The principles above provide structure and certain advantages to the project. However, they also
+have a cost. While I have deemed it to be worthwhile in this case, I consider it important to at
+least document the disadvantages.
+
+1. No access to a lot of JavaScripts modern ecosystem.
+2. No access to compile time features such as actual typechecking.
+3. More network load that strictly necessary.
+4. Less performance than what would be possible.
+
+### Violations
+
+In some cases I have deemed it acceptable to deviate from the above principles. These are the
+following:
+
+1. The `jsconfig.json` file is a build tool configuration file. It shouldn't be needed, as the
+   project doesn't use any build tools. However, it allows the LSP to be more usefull, thus
+   justifying its existence.
+2. Nested CSS. It is so much more managable than repeating the same selectors over and over. Keep
+   in mind that the principles are to make the maintenence of this side project viable for me in
+   the long term. In ~4 months from this writing (2026-03-04) they become baseline widely available
+   and I would want to rewrite all the styles then. I deem this to be a worthwhile trade-off.
+3. The `:has()` CSS pseudo-class. While it's not as useful, it becomes baseline widely available at
+   the same time as nested CSS. Might as well use it then, as a non-supporting browser can't be
+   used either way.
+
 Structure
 ---------
 
 1. `index.html` is the main HTML file bootstraping everything.
-2. `style.css` defines how to present the notepad.
-3. `index.js` is the JS file bootstraping the actual behaviour.
+2. `index.js` is the JS file bootstraping the actual behaviour.
+3. `style.css` is the CSS file bootstraping the actual styles. It also contains the colors and some
+    helper classes.
 4. `models/` contains the "business logic", i.e. classes representing the current state and its
    behaviour at runtime.
 5. `data/` contains components to store that state in persistent storage for later access.
-6. `ui/` contains the user interface.
+6. `ui/` contains the user interface. The `.js` files contain mithril components, the `.css` files
+   their styles.
 7. `service-worker.js` is a ServiceWorker-Script, allowing for offline usage.
 8. `manifest.json` makes it possible to install the notepad as an app.
 9. `test.html` loads and runs the unit tests from the various `*.test.js` files across the project.
