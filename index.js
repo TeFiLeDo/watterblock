@@ -1,7 +1,8 @@
 "use strict";
 
-import Layout from "/ui/layout.js";
 import BaseView from "/ui/base_view.js";
+import InfoView from "/ui/info_view.js";
+import Layout from "/ui/layout.js";
 
 m.route.prefix = "";
 m.route(document.body, "/", {
@@ -18,4 +19,9 @@ m.route(document.body, "/", {
       );
     },
   },
+  "/info": {
+    render: function() {
+      return m(Layout, { backHref: "/" }, m(InfoView));
+    }
+  }
 });

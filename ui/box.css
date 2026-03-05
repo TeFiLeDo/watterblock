@@ -1,7 +1,7 @@
 .wb-box {
   padding: 1em;
 
-  >* {
+  &:not(.-no-width)>* {
     width: 100%;
   }
 }

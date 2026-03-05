@@ -142,6 +142,10 @@ body {
   flex-direction: column;
 }
 
+a {
+  color: var(--color-accent);
+}
+
 h1 {
   font-size: 2em;
   margin-top: 0.75em;

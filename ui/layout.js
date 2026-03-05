@@ -48,7 +48,8 @@ export default class Layout {
     return m.fragment([
       m("header.header._alternate._apply", [
         backHref ? m(m.route.Link, { href: backHref }, "←") : null,
-        m("h1", "Watterblock"),
+        m("h1.spacer", m(m.route.Link, { href: "/" }, "Watterblock")),
+        m(m.route.Link, { href: "/info" }, "🛈"),
       ]),
       m("main.main", children),
     ]);
