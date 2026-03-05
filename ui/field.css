@@ -1,0 +1,37 @@
+.wb-field {
+  display: grid;
+  grid-template-areas: "label" "field" "description";
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, min-content);
+  column-gap: 1ch;
+  row-gap: 0.5ch;
+
+  &:not(:last-of-type) {
+    margin-bottom: 1em;
+  }
+
+  &.-selectable {
+    grid-template-areas: "field label" ". description";
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: repeat(2, min-content);
+  }
+
+  >.label {
+    grid-area: label;
+    font-weight: bold;
+  }
+
+  >.field {
+    grid-area: field;
+    padding: 0.5em;
+    border-radius: 5px;
+
+    background-color: var(--color-field);
+    border: solid 1px var(--color-text);
+    color: var(--color-text);
+  }
+
+  >.description {
+    grid-area: description;
+  }
+}

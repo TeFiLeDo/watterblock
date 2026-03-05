@@ -6,32 +6,32 @@ import Session from "/models/session.js";
 export default class SessionHead {
   /** @param {{ attrs: { model: Session } }} param The session model to use. */
   view({ attrs: { model } }) {
-    return m("section.session-head", [
-      m("h3", "Satzeinstellungen"),
-      m("section.session-head-names", [
+    return m("section", [
+      m("h3._positioned", "Satzeinstellungen"),
+      m("section", [
         m("h4", "Teamnamen"),
-        m("label.field", [
+        m("label.wb-field", [
           m("span.label", "Nam von eana"),
-          m("input", {
+          m("input.field", {
             placeholder: "Se",
             value: model.theirTeam,
             oninput: (e) => model.theirTeam = e.target.value,
           }),
         ]),
-        m("label.field", [
+        m("label.wb-field", [
           m("span.label", "Nam von ins"),
-          m("input", {
+          m("input.field", {
             placeholder: "Mia",
             value: model.ourTeam,
             oninput: (e) => model.ourTeam = e.target.value,
           }),
         ]),
       ]),
-      m("section.session-head-base", [
+      m("section", [
         m("h4", "Grundregln"),
-        m("label.field", [
+        m("label.wb-field", [
           m("span.label", "Punkte zum gwinna"),
-          m("input", {
+          m("input.field", {
             placeholder: "mindestns 1",
             type: "number",
             value: model.rules.goal,
@@ -45,10 +45,10 @@ export default class SessionHead {
           }),
         ]),
       ]),
-      m("section.session-head-raising", [
+      m("section", [
         m("h4", "Erhöhn"),
-        m("label.field", [
-          m("input", {
+        m("label.wb-field.-selectable", [
+          m("input.field", {
             type: "radio",
             checked: model.rules.raising === RaisingRule.UnlessStricken,
             oninput: () => model.rules.raising = RaisingRule.UnlessStricken,
@@ -61,8 +61,8 @@ export default class SessionHead {
             m("em", "So steht's in di Regln von da Tirola Wattagmeinschaft"),
           ]),
         ]),
-        m("label.field", [
-          m("input", {
+        m("label.wb-field.-selectable", [
+          m("input.field", {
             type: "radio",
             checked: model.rules.raising === RaisingRule.UntilEnough,
             oninput: () => model.rules.raising = RaisingRule.UntilEnough,

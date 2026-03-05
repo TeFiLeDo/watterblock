@@ -13,27 +13,27 @@ export default class SessionView {
 
     let res = model.result;
 
-    return m("article.session-view", [
+    return m("article.wb-session-view", [
       ( model.games.length === 0 && model.currentGame === null)
-        ? m(SessionHead, { model })
+        ? m(".spacer", m(SessionHead, { model }))
         : m.fragment([
-            m(".session-view-header", [
-              m("h2.positioned", "Satz"),
+            m("header.header", [
+              m("h2._positioned", "Satz"),
               m(
-                "button.positioned",
+                "button.wb-button._positioned",
                 { onclick: () => this.#headOpen = !this.#headOpen },
                 "Regln"
               ),
             ]),
 
             this.#headOpen
-              ? m(".alter.background.padded", m(SessionHead, { model }))
+              ? m("._alternate._apply.wb-box", m(SessionHead, { model }))
               : null,
 
-            m("section.record", [
-              this.#headOpen ? m("h3", "Mitschrift") : null,
-              m("table", [
-                m("thead.background", [
+            m("section.spacer", [
+              this.#headOpen ? m("h3._positioned-top", "Mitschrift") : null,
+              m("table.results", [
+                m("thead._sticky-top._apply", [
                   m("tr", [
                     m("th", [
                       model.theirTeam ? model.theirTeam : "Se",
@@ -55,12 +55,12 @@ export default class SessionView {
             ]),
       ]),
 
-      model.currentGame !== null
-        ? model.currentGame.currentRound !== null
+      m(".wb-box._alternate._apply._sticky-bottom", [
+        model.currentGame !== null
+          && model.currentGame.currentRound !== null
           ? m(RoundView, { model: model.currentGame.currentRound })
-          : null
-        : m(".continue.alter.background", [
-            m("button.positioned",
+          : m(
+              "button.wb-button._positioned",
               {
                 onclick: () => {
                   model.anotherGame();
@@ -70,8 +70,9 @@ export default class SessionView {
                   });
                 },
               },
-              "no a spiel"),
-          ]),
+              "no a spiel"
+            ),
+      ]),
     ]);
   }
 }

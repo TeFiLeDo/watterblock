@@ -1,0 +1,35 @@
+.wb-round {
+  display: grid;
+  grid-template-areas:
+    "title title title title"
+    "they-raise current-points current-points we-raise"
+    "they-win they-win we-win we-win";
+  grid-template-columns: 1fr auto auto 1fr;
+  gap: 1em;
+
+  >.title {
+    grid-area: title;
+  }
+
+  >.current {
+    grid-area: current-points;
+    align-content: center;
+    font-size: 2em;
+  }
+
+  >.theyraise {
+    grid-area: they-raise;
+  }
+
+  >.theywin {
+    grid-area: they-win;
+  }
+
+  >.weraise {
+    grid-area: we-raise;
+  }
+
+  >.wewin {
+    grid-area: we-win;
+  }
+}

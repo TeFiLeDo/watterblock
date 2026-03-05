@@ -46,11 +46,11 @@ export default class Layout {
       return m("p", "Öffne Datenbank, bitte warten…");
 
     return m.fragment([
-      m("header.layout.alter.background", [
+      m("header.header._alternate._apply", [
         backHref ? m(m.route.Link, { href: backHref }, "←") : null,
         m("h1", "Watterblock"),
       ]),
-      m("main.layout", children),
+      m("main.main", children),
     ]);
   }
 }

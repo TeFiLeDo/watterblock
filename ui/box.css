@@ -1,0 +1,7 @@
+.wb-box {
+  padding: 1em;
+
+  >* {
+    width: 100%;
+  }
+}

@@ -1,0 +1,19 @@
+.wb-button {
+  border: none;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em;
+
+  color: var(--color-background);
+  background-color: var(--color-accent);
+
+  &:disabled {
+    color: var(--color-disabled-background);
+    background-color: var(--color-disabled-accent);
+  }
+
+  &:is(:hover, :focus):not(:disabled) {
+    color: var(--color-focus-background);
+    background-color: var(--color-focus-accent);
+  }
+}

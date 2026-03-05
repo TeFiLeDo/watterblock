@@ -8,7 +8,7 @@ export default class SessionList {
     return m("section", [
       m(m.route.Link, {
         href: "/",
-        selector: "button",
+        selector: "button.wb-button",
         options: {
           state: { newSession: true },
         },
@@ -19,7 +19,7 @@ export default class SessionList {
             m.route.Link,
             {
               href: "/",
-              selector: "button",
+              selector: "button.wb-button",
               params: { session: s.id },
               onclick: () => onSelect(s),
             },

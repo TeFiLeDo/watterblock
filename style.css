@@ -1,77 +1,141 @@
+/* || IMPORTS */
+@import "/ui/box.css";
+@import "/ui/button.css";
+@import "/ui/field.css";
+@import "/ui/layout.css";
+@import "/ui/round.css";
+@import "/ui/session-view.css";
+
+/* || COLORS
+ *
+ * The watterblock uses the following color system:
+ *
+ * 1. At the top, there are themes. The entire app always uses the same theme.
+ *    Currently, there is one dark and one light theme, defaulting to dark.
+ * 2. Each theme contains two color sets, "regular" and "alternate". Individual
+ *    components always use the same set, but their parent or child components
+ *    may differ. Color sets within a theme are meant to complement each other.
+ * 3. Each color set contains three main colors: text, background and accent.
+ * 4. Each color set also contains additional colors derived from the main
+ *    three. For the moment these need to be calculated at authoring time, but
+ *    the intention is to use relative colors once they are baseline widely
+ *    available, which should happen around April 2027.
+ * 5. The "current" color set redefines the applicable colors based on which
+ *    color set is currently active. Components are meant to rely on it.
+ */
+
+html {
+  /* regular main colors */
+  --color-regular-text: lch(100 0 0);
+  --color-regular-background: lch(10 0 0);
+  --color-regular-accent: lch(86 84 71);
+
+  /* regular derived colors */
+  --color-regular-disabled-text: lch(75 0 0);
+  --color-regular-disabled-background: lch(35 0 0);
+  --color-regular-disabled-accent: lch(100 50 71);
+  --color-regular-focus-text: lch(90 0 0);
+  --color-regular-focus-background: lch(20 0 0);
+  --color-regular-focus-accent: lch(95 84 71);
+  --color-regular-field: lch(20 0 0);
+
+  /* alternate main colors */
+  --color-alternate-text: lch(100 0 0);
+  --color-alternate-background: lch(0 0 0);
+  --color-alternate-accent: lch(86 84 71);
+
+  /* alternate derived colors */
+  --color-alternate-disabled-text: lch(75 0 0);
+  --color-alternate-disabled-background: lch(25 0 0);
+  --color-alternate-disabled-accent: lch(100 50 71);
+  --color-alternate-focus-text: lch(90 0 0);
+  --color-alternate-focus-background: lch(10 0 0);
+  --color-alternate-focus-accent: lch(95 84 71);
+  --color-alternate-field: lch(5 0 0);
+
+  @media (prefers-color-scheme: light) {
+    /* regular main colors */
+    --color-regular-text: lch(0 0 0);
+    --color-regular-background: lch(100 0 0);
+    --color-regular-accent: lch(14 77 304);
+
+    /* regular derived colors */
+    --color-regular-disabled-text: lch(25 0 0);
+    --color-regular-disabled-background: lch(75 0 0);
+    --color-regular-disabled-accent: lch(30 77 304);
+    --color-regular-focus-text: lch(10 0 0);
+    --color-regular-focus-background: lch(90 0 0);
+    --color-regular-focus-accent: lch(20 77 304);
+    --color-regular-field: lch(95 0 0);
+
+    /* alternate main colors */
+    --color-alternate-text: lch(0 0 0);
+    --color-alternate-background: lch(90 0 0);
+    --color-alternate-accent: lch(14 77 304);
+
+    /* alternate derived colors */
+    --color-alternate-disabled-text: lch(25 0 0);
+    --color-alternate-disabled-background: lch(65 0 0);
+    --color-alternate-disabled-accent: lch(30 77 304);
+    --color-alternate-focus-text: lch(10 0 0);
+    --color-alternate-focus-background: lch(80 0 0);
+    --color-alternate-focus-accent: lch(20 77 304);
+    --color-alternate-field: lch(95 0 0);
+  }
+}
+
+._regular {
+  /* main colors */
+  --color-text: var(--color-regular-text);
+  --color-background: var(--color-regular-background);
+  --color-accent: var(--color-regular-accent);
+
+  /* derived colors */
+  --color-disabled-text: var(--color-regular-disabled-text);
+  --color-disabled-background: var(--color-regular-disabled-background);
+  --color-disabled-accent: var(--color-regular-disabled-accent);
+  --color-focus-text: var(--color-regular-focus-text);
+  --color-focus-background: var(--color-regular-focus-background);
+  --color-focus-accent: var(--color-regular-focus-accent);
+  --color-field: var(--color-regular-field);
+}
+
+._alternate {
+  /* main colors */
+  --color-text: var(--color-alternate-text);
+  --color-background: var(--color-alternate-background);
+  --color-accent: var(--color-alternate-accent);
+
+  /* derived colors */
+  --color-disabled-text: var(--color-alternate-disabled-text);
+  --color-disabled-background: var(--color-alternate-disabled-background);
+  --color-disabled-accent: var(--color-alternate-disabled-accent);
+  --color-focus-text: var(--color-alternate-focus-text);
+  --color-focus-background: var(--color-alternate-focus-background);
+  --color-focus-accent: var(--color-alternate-focus-accent);
+  --color-field: var(--color-alternate-field);
+}
+
+._apply {
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+/* || BASE STYLES
+ *
+ * The most basic styles for regular content.
+ */
+
 html {
   height: 100%;
   font-family: sans-serif;
-
-  --color-regular-text: white;
-  --color-regular-background: lch(from black calc(l + 10) c h);
-  --color-regular-field: black;
-  --color-alter-text: white;
-  --color-alter-background: black;
-  --color-alter-field: var(--color-regular-background);
-  --color-primary-text: black;
-  --color-primary-background: lch(from orange calc(l + 10) c h);
-  --color-primary-field:
-    lch(from var(--color-primary-background) calc(l + 25) c h);
-
-  @media (prefers-color-scheme: light) {
-    --color-regular-text: black;
-    --color-regular-background: white;
-    --color-regular-field: var(--color-alter-background);
-    --color-alter-text: black;
-    --color-alter-background: lch(from white calc(l - 10) c h);
-    --color-alter-field: white;
-    --color-primary-text: black;
-    --color-primary-background: lch(from orange calc(l + 10) c h);
-    --color-primary-field:
-      lch(from var(--color-primary-background) calc(l + 25) c h);
-  }
-
-  color: var(--color-regular-text);
-  background-color: var(--color-regular-background);
-
-  --color-active-text: var(--color-regular-text);
-  --color-active-background: var(--color-regular-background);
-  --color-active-field: var(--color-regular-field);
-}
-
-.background {
-  background-color: var(--color-active-background);
-}
-
-.regular,
-.alter,
-.primary {
-  color: var(--color-active-text);
-}
-
-.regular {
-  --color-active-text: var(--color-regular-text);
-  --color-active-background: var(--color-regular-background);
-  --color-active-field: var(--color-regular-field);
-}
-
-.alter {
-  --color-active-text: var(--color-alter-text);
-  --color-active-background: var(--color-alter-background);
-  --color-active-field: var(--color-alter-field);
-}
-
-.primary {
-  --color-active-text: var(--color-primary-text);
-  --color-active-background: var(--color-primary-background);
-  --color-active-field: var(--color-primary-field);
-}
-
-.positioned {
-  margin: 0;
-}
-
-.padded {
-  padding: 1em;
+  color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 body {
   min-height: 100%;
+  /* really hacky seeming workaround for some CSS weirdness */
   height: 1px;
   display: flex;
   flex-direction: column;
@@ -113,216 +177,25 @@ h6 {
   margin-bottom: 0.5em;
 }
 
-button {
-  border: none;
-  border-radius: 5px;
-  color: var(--color-primary-text);
-  background: var(--color-primary-background);
-  padding: 1em 1em;
-  margin: 1em;
+/* || POSITIONING
+ *
+ * Helpers for positioning stuff exactly as needed.
+ */
 
-  &:disabled {
-    color: hsl(from var(--color-primary-text) h s calc(l + 25));
-    background-color:
-      hsl(from var(--color-primary-background) h s calc(l + 25));
-  }
-
-  &:hover,
-  &:focus {
-    color: hsl(from var(--color-primary-text) h s calc(l + 10));
-    background-color:
-      hsl(from var(--color-primary-background) h s calc(l + 10));
-  }
+._positioned {
+  margin: 0;
 }
 
-header.layout {
-  display: flex;
-  align-items: center;
-
-  >* {
-    padding: 0.5em 0.25em;
-    font-size: 2em;
-    color: inherit;
-    text-decoration: none;
-    margin: 0;
-
-    &:first-child {
-      padding-left: 0.5em;
-      padding-right: 0.5em;
-    }
-
-    &:nth-child(2) {
-      padding-left: 0;
-    }
-
-    &:last-child {
-      padding-right: 0.5em;
-    }
-  }
+._positioned-top {
+  margin-top: 0;
 }
 
-main.layout {
-  flex-grow: 1;
+._sticky-top {
+  position: sticky;
+  top: 0;
 }
 
-.session-view {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  gap: 1em;
-
-  >* {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  >:first-child {
-    padding-top: 1rem;
-  }
-
-  >:last-child {
-    padding-bottom: 1rem;
-  }
-
-  .session-view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  :nth-last-child(2) {
-    flex-grow: 1;
-  }
-
-  table {
-    font-size: 1.5em;
-    table-layout: fixed;
-    width: 100%;
-    text-align: center;
-    border-spacing: 0;
-  }
-
-  th:not(:last-child),
-  td:not(:last-child) {
-    border-right: 1px solid var(--color-regular-text);
-  }
-
-  thead {
-    border-bottom: 1px solid var(--color-regular-text);
-    position: sticky;
-    top: 0;
-
-    th {
-      border-bottom: 3px double var(--color-regular-text);
-      padding: 0.5em 0;
-    }
-  }
-
-  tbody {
-    &:not(:last-of-type) tr:last-child td {
-      border-bottom: 1px solid var(--color-regular-text);
-    }
-
-    min-height: 5px;
-  }
-}
-
-.current-round {
-  display: grid;
-  grid-template-areas:
-    "title title title title"
-    "they-raise current-points current-points we-raise"
-    "they-win they-win we-win we-win";
-  grid-template-columns: 1fr auto auto 1fr;
-  gap: 1em;
-
+._sticky-bottom {
   position: sticky;
   bottom: 0;
-
-  padding: 1em;
-
-  >h3 {
-    grid-area: title;
-  }
-
-  >.current-points {
-    grid-area: current-points;
-    align-content: center;
-    font-size: 2em;
-  }
-
-  >.they-raise {
-    grid-area: they-raise;
-  }
-
-  >.we-raise {
-    grid-area: we-raise;
-  }
-
-  >.they-win {
-    grid-area: they-win;
-  }
-
-  >.we-win {
-    grid-area: we-win;
-  }
-}
-
-.continue {
-  position: sticky;
-  bottom: 0;
-  padding: 1em;
-
-  button {
-    width: 100%;
-  }
-}
-
-.field {
-  display: grid;
-  grid-template-areas: "label" "field" "description";
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(3, min-content);
-  column-gap: 1ch;
-  row-gap: 0.5ch;
-
-  &:not(:last-child) {
-    margin-bottom: 1em;
-  }
-
-  &:has(input[type=radio]),
-  &:has(input[type=checkbox]) {
-    grid-template-areas: "field label" ". description";
-    grid-template-columns: min-content 1fr;
-    grid-template-rows: repeat(2, min-content);
-  }
-
-  .label {
-    grid-area: label;
-    font-weight: bold;
-  }
-
-  input {
-    grid-area: field;
-    padding: 0.5em;
-    border-radius: 5px;
-
-    background-color: var(--color-active-field);
-    border: solid 1px var(--color-active-text);
-    color: var(--color-active-text);
-  }
-
-  .description {
-    grid-area: description;
-  }
-}
-
-.session-head {
-  >:first-child {
-    margin-top: 0;
-  }
-
-  >:last-child {
-    margin-bottom: 0;
-  }
 }
