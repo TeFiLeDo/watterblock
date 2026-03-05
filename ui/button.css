@@ -16,4 +16,8 @@
     color: var(--color-focus-background);
     background-color: var(--color-focus-accent);
   }
+
+  &.-slim {
+    padding: 0.5em;
+  }
 }
