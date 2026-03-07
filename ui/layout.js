@@ -47,9 +47,15 @@ export default class Layout {
 
     return m.fragment([
       m("header.header._alternate._apply", [
-        backHref ? m(m.route.Link, { href: backHref }, "←") : null,
+        backHref
+          ? m(m.route.Link, { href: backHref },
+              m("span.material-symbols-outlined", "arrow_back"),
+            )
+          : null,
         m("h1.spacer", m(m.route.Link, { href: "/" }, "Watterblock")),
-        m(m.route.Link, { href: "/info" }, "🛈"),
+        m(m.route.Link, { href: "/info" },
+          m("span.material-symbols-outlined", "info"),
+        ),
       ]),
       m("main.main", children),
     ]);
