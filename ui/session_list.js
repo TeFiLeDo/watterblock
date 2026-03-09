@@ -4,15 +4,20 @@ import Session from "/models/session.js";
 
 export default class SessionList {
   /** @param {{ attrs: { models: Session[] } }} param The sessions to show. */
-  view({attrs: { models, onSelect } }) {
+  view({attrs: { models, onSelect, onDelete } }) {
     return m("section.wb-session-list", [
       m("ol", [
-        models.map((s) => m("li.item._alternate._apply", [
+        models.map((s, i) => m("li.item._alternate._apply", [
           m("span.theirname", s.theirTeam !== "" ? s.theirTeam : "Se"),
           m("span.ourname", s.ourTeam !== "" ? s.ourTeam : "Mia"),
           m("span.theirpoints", "•".repeat(s.result.theirPoints)),
           m("span.ourpoints", "•".repeat(s.result.ourPoints)),
           m("div.actions",
+            m(
+              "button.wb-button.-slim._positioned",
+              { onclick: () => onDelete(s.id, i) },
+              "löschn"
+            ),
             m(
               m.route.Link,
               {

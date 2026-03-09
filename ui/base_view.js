@@ -25,6 +25,7 @@ export default class BaseView {
       return m(SessionList, {
         models: this.#model.sessions,
         onSelect: (session) => this.#model.current = session,
+        onDelete: (id, index) => this.#model.deleteSession(id, index),
       });
 
     return m("p", "Wart kurz, i lad grad die Spiele…");
@@ -159,4 +160,10 @@ class BaseViewModel {
     this.loadAllSessions();
   };
 
+  deleteSession(id, index) {
+    SessionRepo.delete(id);
+    if (this.#sessions[index] === undefined || this.#sessions[index].id !== id)
+      return;
+    this.#sessions.splice(index, 1);
+  }
 }
