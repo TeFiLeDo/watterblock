@@ -10,7 +10,7 @@ export default class SessionList {
         models.length === 0
           ? m("li.item.-text._alternate._apply", "Du hast no koane Sätz…")
           : null,
-        models.map((s, i) => m("li.item._alternate._apply", [
+        models.map((s, i) => m("li.item._alternate._apply", { key: s.id }, [
           m("span.theirname", s.theirTeam !== "" ? s.theirTeam : "Se"),
           m("span.ourname", s.ourTeam !== "" ? s.ourTeam : "Mia"),
           m("span.theirpoints", "•".repeat(s.result.theirPoints)),
