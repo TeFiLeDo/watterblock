@@ -99,7 +99,7 @@ export default class SessionRepo {
    *
    * @returns {Promise<number>} A promise containing the ID of the add session.
    */
-  static put(session, transaction) {
+  static async put(session, transaction) {
     if (!(session instanceof Session))
       throw new TypeError("session to put in must be an actual Session");
 
@@ -107,20 +107,13 @@ export default class SessionRepo {
     let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
 
     let struct = session.toStruct();
-    let req = requestToPromise(sessions.put(struct));
+    let id = await requestToPromise(sessions.put(struct));
 
-    // promise with which the session object can be altered
-    let alt = req;
-
-    // add id to original object if it is new
     if (session.id === null)
-      alt = alt.then((id) => session.id = id);
+      session.id = id;
+    SessionRepo.#setupChangeHandling(session, transaction.db);
 
-    // add change listener to object.
-    alt.then(() => SessionRepo.#setupChangeHandling(session, transaction.db));
-
-    // make sure alt is handled first
-    return req.then(res => res);
+    return id;
   }
 
   /** Get a specific session from the repository.
