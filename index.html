@@ -18,15 +18,25 @@
 </head>
 
 <body class="wb-layout">
-  <p>Watterblock wird geladen…</p>
-  <noscript>
-    <p>Das Laden des Watterblocks ist fehlgeschlagen.</p>
+  <div class="wb-splash" id="initial" style="display: none;">
+    <div class="spinner"></div>
+    <h1>Watterblock</h1>
+    <p>I lad grad…</p>
+  </div>
+  <script>document.getElementById("initial").removeAttribute("style")</script>
+
+  <noscript class="wb-splash">
+    <h1>Watterblock</h1>
+    <p>Da Watterblock kann nit aufgmacht werdn.</p>
     <p>
-      Der Watterblock ist ein Programm, dass direkt in deinem Browser läuft.
-      Der Server sendet nur am Anfang die benötigten Dateien. Für die
-      Funktionalität ist daher <em>JavaScript</em> zwingend erforderlich.
+      Des ligt daran, dass ea als Programm direkt in deim Browser laft. Daher
+      is ea a völlig von <em>JavaScript</em> abhängig. Sonst geht ea nit.
     </p>
-    <p><strong>Bitte aktiviere <em>JavaScript</em> wieder.</strong></p>
+    <p>
+      <strong>
+        Sei doch so guat und schoit <em>JavaScript</em> wieder ein.
+      </strong>
+    </p>
   </noscript>
 </body>
 
