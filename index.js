@@ -19,9 +19,11 @@ navigator.storage.persisted().then((persistent) => {
       "dazu no a extra Nachricht.";
 
     const failure =
-      "S'isch leida nit gangen. #JustSafariThings. Du kansch entweda an "
+      "S'isch leida nit gangen, Safari hat na gsagt. Du kansch entweda an " +
       "andern Browser heanemmen, oder halt damit Leben wenn Safari deine " +
-      "Datn löscht.";
+      "Datn löscht.\n" +
+      "\n" +
+      "#JustSafariThings";
 
     if (window.confirm(question)) {
       navigator.storage.persist().then((persistent) => {
