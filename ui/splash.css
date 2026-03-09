@@ -1,0 +1,30 @@
+.wb-splash {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  min-height: 100%;
+  align-items: center;
+  padding: 1em;
+  box-sizing: border-box;
+  text-align: center;
+
+  >.spinner {
+    --spinner-size: 5em;
+    width: var(--spinner-size);
+    height: var(--spinner-size);
+    border: calc(var(--spinner-size) / 10) solid var(--color-text);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: 1s rotate infinite linear;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
