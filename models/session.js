@@ -130,7 +130,7 @@ export default class Session extends EventTarget {
   /** Add another round if there is no current one. */
   anotherGame() {
     if (this.#currentGame === null) {
-      this.#currentGame = new Game(this.rules);
+      this.#currentGame = new Game(new GameRules(this.#rules));
       this.#currentGame.addEventListener(
         Game.EVENT_CHANGE, this.#boundHandleGameChange);
       this.#changed();
