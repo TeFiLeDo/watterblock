@@ -18,7 +18,12 @@ export default class SessionList {
           m("div.actions",
             m(
               "button.wb-button.-slim._positioned",
-              { onclick: () => onDelete(s.id, i) },
+              {
+                onclick: () => {
+                  if (window.confirm("Wiillst den Satz wirklich löschn?"))
+                    onDelete(s.id, i);
+                }
+              },
               "löschn"
             ),
             m(
