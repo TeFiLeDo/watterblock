@@ -7,6 +7,9 @@ export default class SessionList {
   view({attrs: { models, onSelect, onDelete } }) {
     return m("section.wb-session-list", [
       m("ol", [
+        models.length === 0
+          ? m("li.item.-text._alternate._apply", "Du hast no koane Sätz…")
+          : null,
         models.map((s, i) => m("li.item._alternate._apply", [
           m("span.theirname", s.theirTeam !== "" ? s.theirTeam : "Se"),
           m("span.ourname", s.ourTeam !== "" ? s.ourTeam : "Mia"),
