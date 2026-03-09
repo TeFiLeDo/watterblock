@@ -25,8 +25,10 @@ export default class RoundView {
       ),
       m("button.wb-button.theywin._positioned",
         {
-          onclick: () => {
+          onclick: (event) => {
+            event.redraw = false;
             model.winner = Team.They;
+            m.redraw.sync();
             window.scrollTo({
               top: document.body.scrollHeight,
               behavior: "smooth",
@@ -38,8 +40,10 @@ export default class RoundView {
       ),
       m("button.wb-button.wewin._positioned",
         {
-          onclick: () => {
+          onclick: (event) => {
+            event.redraw = false;
             model.winner = Team.We;
+            m.redraw.sync();
             window.scrollTo({
               top: document.body.scrollHeight,
               behavior: "smooth",

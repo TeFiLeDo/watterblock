@@ -62,8 +62,10 @@ export default class SessionView {
           : m(
               "button.wb-button._positioned",
               {
-                onclick: () => {
+                onclick: (event) => {
+                  event.redraw = false;
                   model.anotherGame();
+                  m.redraw.sync();
                   window.scrollTo({
                     top: document.body.scrollHeight,
                     behavior: "smooth",
