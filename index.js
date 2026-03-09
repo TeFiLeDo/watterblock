@@ -4,6 +4,11 @@ import BaseView from "/ui/base_view.js";
 import InfoView from "/ui/info_view.js";
 import Layout from "/ui/layout.js";
 
+try {
+  navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
+} catch (error) {
+  console.error("failed to register service worker: ", error);
+}
 
 try {
   navigator.storage.persisted().then((persistent) => {
