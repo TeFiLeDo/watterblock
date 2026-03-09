@@ -65,6 +65,8 @@ export default class SessionRepo {
   static async #handleChange() {
     if (!(this instanceof Session))
       throw new TypeError("session to put in must be an actual Session");
+    if (!(SessionRepo.#marker in this))
+      return;
     SessionRepo.put(this, this[SessionRepo.#marker]);
   }
 
@@ -171,6 +173,29 @@ export default class SessionRepo {
     sessions = await requestToPromise(sessions.getAll());
     return sessions.reverse().map(
       (session) => SessionRepo.#setupChangeHandling(session, transaction.db));
+  }
+
+  /** Delete a specific session.
+   *
+   * This also tears down the auto updating if the passed session is an
+   * instance of `Session`.
+   *
+   * @param {number | Session} session The session or session ID to delete.
+   * @param {Transactable=} transaction A transaction to use.
+   */
+  static async delete(session, transaction) {
+    transaction = toTransaction(transaction, [WbDb.OS_SESSIONS], "readwrite");
+    let sessions = transaction.objectStore(WbDb.OS_SESSIONS);
+
+    if (session instanceof Session) {
+      session.removeEventListener(Session.EVENT_CHANGE, SessionRepo.#handleChange);
+      delete this[SessionRepo.#marker];
+      session = session.id;
+    }
+    if (typeof session !== "number")
+      throw new TypeError("session to delete must be session or session ID");
+
+    return requestToPromise(sessions.delete(session));
   }
 
   /** Load all sessions, parse them, then reinsert them.

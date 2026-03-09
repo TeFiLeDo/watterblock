@@ -207,6 +207,21 @@ export default function() {
       assert.strictEqual(sessions[1].id, second.id, "second is older");
     });
 
+    QUnit.test("delete session", async function(assert) {
+      inst = WbDb.get(true);
+      await waitForOpen(inst);
+
+      let session = new Session();
+      await SessionRepo.put(session, inst);
+      let stored = await SessionRepo.get(session.id, inst);
+      assert.notStrictEqual(stored, undefined, "session stored");
+      assert.strictEqual(stored.id, session.id, "IDs match");
+
+      await SessionRepo.delete(session.id, inst);
+      stored = await SessionRepo.get(session.id, inst);
+      assert.strictEqual(stored, undefined, "no longer stored");
+    });
+
     QUnit.test("reinserting all sessions", async function(assert) {
       // old structurized session (see v1 tests of session model)
       const old = {
