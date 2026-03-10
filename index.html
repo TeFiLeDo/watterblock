@@ -9,6 +9,14 @@
   <link rel="stylesheet" href="/vendored/normalize-8.0.1.css">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/vendored/material-icons.css" />
+  <noscript>
+    <style>
+      ._yesscript {
+        display: none !important;
+      }
+    </style>
+  </noscript>
+
   <script type="module">
     // initialize DB early
     import WbDb from "/data/db.js";
@@ -27,12 +35,11 @@
 </head>
 
 <body class="wb-layout">
-  <div class="wb-splash" id="initial" style="display: none;">
+  <div class="wb-splash _yesscript">
     <div class="spinner"></div>
     <h1>Watterblock</h1>
     <p>I lad grad…</p>
   </div>
-  <script>document.getElementById("initial").removeAttribute("style")</script>
 
   <noscript class="wb-splash">
     <h1>Watterblock</h1>
