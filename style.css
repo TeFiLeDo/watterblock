@@ -30,6 +30,7 @@ html {
   /* regular main colors */
   --color-regular-text: lch(100 0 0);
   --color-regular-background: lch(10 0 0);
+  /* also in index.html as meta theme-color, update there too */
   --color-regular-accent: lch(86 84 71);
 
   /* regular derived colors */
@@ -59,6 +60,7 @@ html {
     /* regular main colors */
     --color-regular-text: lch(0 0 0);
     --color-regular-background: lch(100 0 0);
+    /* also in index.html as meta theme-color, update there too */
     --color-regular-accent: lch(14 77 304);
 
     /* regular derived colors */
