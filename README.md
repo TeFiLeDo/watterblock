@@ -179,8 +179,18 @@ consists of `vendored/normalize-8.0.1.css`. This is it's license:
 ### Material Icons
 
 The **material icons** are, as their name suggests, icons, which are used in place of text. They
-consist of the files `vendored/material-icons.css` and `vendored/material-icons.ttf`. This is their
-license:
+consist of the files `vendored/material-icons.css` and `vendored/material-icons.ttf`.
+
+The former of those has been modified. Originally it was as provided by upstream, except for the
+location of the font file. It has since been modified more. Those changes can easily be viewed via
+[`git log vendored/material-icons.css`][mi-log] and
+[`git blame vendored/material-icons.css`][mi-blame]. A link to a web rendering of both has been
+provided for convenience.
+
+[mi-log]: https://git.tfld.dev/tfld/watterblock/commits/branch/main/vendored/material-icons.css
+[mi-blame]: https://git.tfld.dev/tfld/watterblock/blame/branch/main/vendored/material-icons.css
+
+This is the license:
 
                                      Apache License
                                Version 2.0, January 2004
