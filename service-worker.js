@@ -64,7 +64,7 @@ async function getFromCache(request, event) {
 }
 
 async function putInCache(request, response) {
-  const cache = await cache.open(CACHE_NAME);
+  const cache = await caches.open(CACHE_NAME);
   await cache.put(request, response);
 }
 
