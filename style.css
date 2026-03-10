@@ -61,29 +61,29 @@ html {
     --color-regular-text: lch(0 0 0);
     --color-regular-background: lch(100 0 0);
     /* also in index.html as meta theme-color, update there too */
-    --color-regular-accent: lch(14 77 304);
+    --color-regular-accent: lch(30 87 292);
 
     /* regular derived colors */
     --color-regular-disabled-text: lch(25 0 0);
     --color-regular-disabled-background: lch(75 0 0);
-    --color-regular-disabled-accent: lch(30 77 304);
+    --color-regular-disabled-accent: lch(45 87 292);
     --color-regular-focus-text: lch(10 0 0);
     --color-regular-focus-background: lch(90 0 0);
-    --color-regular-focus-accent: lch(20 77 304);
+    --color-regular-focus-accent: lch(35 87 292);
     --color-regular-field: lch(95 0 0);
 
     /* alternate main colors */
     --color-alternate-text: lch(0 0 0);
     --color-alternate-background: lch(90 0 0);
-    --color-alternate-accent: lch(14 77 304);
+    --color-alternate-accent: lch(20 87 292);
 
     /* alternate derived colors */
     --color-alternate-disabled-text: lch(25 0 0);
     --color-alternate-disabled-background: lch(65 0 0);
-    --color-alternate-disabled-accent: lch(30 77 304);
+    --color-alternate-disabled-accent: lch(35 87 292);
     --color-alternate-focus-text: lch(10 0 0);
     --color-alternate-focus-background: lch(80 0 0);
-    --color-alternate-focus-accent: lch(20 77 304);
+    --color-alternate-focus-accent: lch(25 87 292);
     --color-alternate-field: lch(95 0 0);
   }
 }
