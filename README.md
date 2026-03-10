@@ -73,10 +73,6 @@ following:
    the long term. In ~4 months from this writing (2026-03-04) they become baseline widely available
    and I would want to rewrite all the styles then. I deem this to be a worthwhile trade-off.
 
-3. The `:has()` CSS pseudo-class. While it's not as useful, it becomes baseline widely available at
-   the same time as nested CSS. Might as well use it then, as a non-supporting browser can't be
-   used either way.
-
 Structure
 ---------
 
