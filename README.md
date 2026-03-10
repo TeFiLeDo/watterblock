@@ -56,7 +56,8 @@ least document the disadvantages.
    Also, most of the icons font could propably be cut away with some build tool. While I could do
    that manually, it'd be too much hassle if I ever needed an additional icon.
 
-4. Less performance than what would be possible.
+4. Certain kinds of testing are impossible. For example, it's not really possible to test the
+   service worker from within the browser. Also, automated testing on pushes is not doable.
 
 ### Violations
 
