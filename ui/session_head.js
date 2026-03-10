@@ -4,10 +4,24 @@ import { RaisingRule } from "/models/game_rules.js";
 import Session from "/models/session.js";
 
 export default class SessionHead {
-  /** @param {{ attrs: { model: Session } }} param The session model to use. */
-  view({ attrs: { model } }) {
+  /** The attributes a `SessionHead` component can handle.
+   *
+   * @typedef {Object} SessionHeadAttrs
+   * @property {Session} model The session model to use.
+   * @property {boolean} noteNextGame
+   * If set, show a message that rules only come into effect for the next game.
+   */
+
+  /** @param {{ attrs: SessionHeadAttrs }} param Parameters for the component */
+  view({ attrs: { model, noteNextGame } }) {
     return m("section", [
       m("h3._positioned", "Satzeinstellungen"),
+      noteNextGame
+        ? m("p",
+          "Obacht, wennst di Regln ändast, geltn di neien erst fürs naxte ",
+          "Spiel."
+        )
+        : null,
       m("section", [
         m("h4", "Teamnamen"),
         m("label.wb-field", [

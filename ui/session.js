@@ -27,7 +27,10 @@ export default class SessionView {
             ]),
 
             this.#headOpen
-              ? m("._alternate._apply.wb-box", m(SessionHead, { model }))
+              ? m("._alternate._apply.wb-box", m(SessionHead, {
+                  model,
+                  noteNextGame: true,
+                }))
               : null,
 
             m("section.spacer", [
