@@ -17,23 +17,25 @@ export default class SessionList {
           m("span.ourpoints", "•".repeat(s.result.ourPoints)),
           m("div.actions",
             m(
-              "button.wb-button.-slim._positioned",
+              "button.wb-button.-slim.-icon._positioned",
               {
                 onclick: () => {
                   if (window.confirm("Wiillst den Satz wirklich löschn?"))
                     onDelete(s.id, i);
                 }
               },
+              m("span.material-symbols-outlined", "delete"),
               "löschn"
             ),
             m(
               m.route.Link,
               {
                 href: "/",
-                selector: "button.wb-button.-slim._positioned",
+                selector: "button.wb-button.-slim.-icon._positioned",
                 params: { session: s.id },
                 onclick: () => onSelect(s),
               },
+              m("span.material-symbols-outlined", "playing_cards"),
               "spieln",
             ),
           ),
