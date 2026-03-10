@@ -60,17 +60,6 @@ export default function() {
       assert.notStrictEqual(session.currentGame, null, "game in progress");
     });
 
-    QUnit.test("session rule change doesn't affect games", function(assert) {
-      let session = new Session();
-      session.anotherGame();
-      session.rules.goal = 7;
-      assert.notStrictEqual(
-        session.currentGame.rules.goal,
-        session.rules.goal,
-        "game rules have been copied",
-      );
-    });
-
     QUnit.test("single game finished", function(assert) {
       let session = new Session();
       session.anotherGame();

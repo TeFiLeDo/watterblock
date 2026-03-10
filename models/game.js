@@ -59,7 +59,7 @@ export default class Game extends EventTarget {
     super();
     if (value === undefined || value instanceof GameRules) {
       if (value instanceof GameRules)
-        this.#rules = value;
+        this.#rules = new GameRules(value);
 
       this.#currentRound = new Round(
         this.#rules.raisingLimit(0), this.#rules.raisingLimit(0));

@@ -53,6 +53,18 @@ export default function() {
       );
     });
 
+    QUnit.test("rules stay static after construction", function(assert) {
+      let rules = new GameRules();
+      rules.goal = 15;
+
+      let game = new Game(rules);
+      assert.strictEqual(game.rules.goal, 15, "correct goal");
+
+      rules.goal = 17;
+      assert.strictEqual(game.rules.goal, 15, "games rules didn't change");
+      assert.notStrictEqual(game.rules.goal, rules.goal, "goals are different");
+    });
+
     QUnit.test("single round played", function(assert) {
       let game = new Game();
       game.currentRound.winner = Team.We;
