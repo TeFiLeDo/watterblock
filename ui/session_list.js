@@ -1,5 +1,6 @@
 "use strict";
 
+import SafariPersist from "./safari-persist.js";
 import Session from "/models/session.js";
 
 export default class SessionList {
@@ -7,6 +8,7 @@ export default class SessionList {
   view({attrs: { models, onSelect, onDelete } }) {
     return m("section.wb-session-list", [
       m("ol", [
+        m(SafariPersist),
         models.length === 0
           ? m("li.item.-text._alternate._apply", "Du hast no koane Sätz…")
           : null,
