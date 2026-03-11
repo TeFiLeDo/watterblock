@@ -8,7 +8,8 @@ export default class Persist {
   #persisted = null;
 
   async oninit() {
-    this.#persisted = await navigator.storage.persisted();
+    this.#persisted = await navigator?.storage?.persisted() ?? null;
+    m.redraw();
   }
 
   view() {
