@@ -5,73 +5,10 @@ This project is a web based notepad specialized for keeping score in the game of
 an online version of the game, and it has no social features. It is only intended to replace a
 piece of paper.
 
-Principles
-----------
-
-This is a hobby project, and I don't want to spend a lot of time maintaining it. Therefore, the
-following principles will guide its development.
-
-1. **No feature creep:** For the time beeing, this project will not grow beyond being a simple
-   score keeping tool. Logical expansions, like synching a session between users / devices, will
-   not be implemented, because they would be too complicated for the time I intend to spend on
-   maintenance.
-
-2. **Simple and stable dependencies:** I have learned in past projects that fast moving
-   environments, like many modern JS frameworks, are very tedious to keep up with. Therefore all
-   libraries must be stable and consistent. Also, I don't want to spend much time wrangling npm.
-   Therefore all dependencies must be vendorable as a couple of files.
-
-3. **Browser based development:** I don't want to spend a lot of time on build tools, transpilers,
-   and similar things. All code has to be able to run in the browser in the form it is written. All
-   dev tools (like the testing framework) have to be able to run in the browser.
-
-4. **Targetting Baseline:** The limited time for maintenance means I won't be able to do testing
-   for all browser/version/os tripples. Instead, I'll target "baseline widely available" and rely
-   on it's correctness for portability. I'll also use features that are "baseline newly available",
-   but only with feature checking, which I'll only do for them.
-
-5. **Extensive tests:** I don't want to spend a lot of time on bug hunting, therefore everything
-   that can be tested automatically should be.
-
-6. **Good documentation:** I'll most certainly forget how some things work at some point. Thus it
-   is paramount to keep a good documentation, so I won't have to read through everything again.
-
-### Trade-offs
-
-The principles above provide structure and certain advantages to the project. However, they also
-have a cost. While I have deemed it to be worthwhile in this case, I consider it important to at
-least document the disadvantages.
-
-1. No access to a lot of JavaScripts modern ecosystem.
-
-2. No access to compile time features such as actual typechecking.
-
-3. More network load that strictly necessary.
-
-   Build tools can provide minification, bundling and tree shaking. All of these are not available
-   to this project, but likely would decrease the total amount of data needed to be transfered.
-   However, likely it wouldn't actually be all that much, because it's a rather small application,
-   and it does its own caching with the service worker.
-
-   Also, most of the icons font could propably be cut away with some build tool. While I could do
-   that manually, it'd be too much hassle if I ever needed an additional icon.
-
-4. Certain kinds of testing are impossible. For example, it's not really possible to test the
-   service worker from within the browser. Also, automated testing on pushes is not doable.
-
-### Violations
-
-In some cases I have deemed it acceptable to deviate from the above principles. These are the
-following:
-
-1. The `jsconfig.json` file is a build tool configuration file. It shouldn't be needed, as the
-   project doesn't use any build tools. However, it allows the LSP to be more usefull, thus
-   justifying its existence.
-
-2. Nested CSS. It is so much more managable than repeating the same selectors over and over. Keep
-   in mind that the principles are to make the maintenence of this side project viable for me in
-   the long term. In ~4 months from this writing (2026-03-04) they become baseline widely available
-   and I would want to rewrite all the styles then. I deem this to be a worthwhile trade-off.
+> **Leisure Project** <br>
+> This is a [leisure project](https://garten.tfld.dev/Freizeitprojekt#^leisure). The resources for
+> its development and maintenance are limited, which place several restrictions on it. The
+> aforementioned link leads you to a more detailed explanation.
 
 Structure
 ---------
@@ -90,6 +27,23 @@ Structure
 9. `test.html` loads and runs the unit tests from the various `*.test.js` files across the project.
    Those files are co-located with the stuff they contain tests for, to make them easier to manage.
 10. `vendored/` contains copies of external dependencies, for direct use.
+
+Notes
+----------
+
+### Violations of the Leisure Project Principles
+
+In some cases the leisure project principles are violated. These are documented here, along with
+a reason why this violation is preferable to strict adherence:
+
+1. The **`jsconfig.json` file** is a build tool configuration file. It isn't needed, as the project
+   doesn't use any build tools, and therefore shouldn't be included. However, it allows the
+   language server to be much more usefull, thus justifying its existence.
+
+2. **Nested CSS** is used, because it is much more managable than repeating selectors. This makes
+   maintenance a lot easier. Also, it becomes baseline widely available in two months and a week
+   from this writing (on 11.06.2026, from 04.04.2026). Therefore this time limited violation is
+   preferable to having to rewrite everything then.
 
 Dependencies
 ------------
